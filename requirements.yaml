@@ -1,0 +1,5 @@
+#- src: geerlingguy.security
+#- src: geerlingguy.ntp
+- src: ironicbadger.ansible_users
+#- src: rossmcdonald.telegraf
+- src: grog.package

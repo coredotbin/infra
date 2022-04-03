@@ -1,7 +1,7 @@
 ---
 
 - name: Check for duplicate MAC addresses
-  include: duplicate_macs.yaml
+  include_tasks: duplicate_macs.yaml
 
 - name: ensure dhcpd package is installed
   package:
@@ -9,4 +9,4 @@
     state: present
 
 - name: Create DHCPD config file
-  include: template_config.yaml
+  include_tasks: template_config.yaml

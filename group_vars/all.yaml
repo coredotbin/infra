@@ -1,0 +1,68 @@
+---
+# generic settings
+main_username: corbin
+main_groupname: "{{ main_username }}"
+
+# grog.package
+package_list:
+  - name: sudo
+  - name: openssh-server
+  - name: bash-completion
+  - name: tmux
+  - name: wget
+  - name: curl
+  - name: git
+  - name: htop
+  - name: iftop
+  - name: iotop
+  - name: lm-sensors
+  - name: ncdu
+  - name: net-tools
+  - name: nmap
+  - name: qemu-guest-agent
+
+# ironicbadger.ansible_users
+groups_to_create:
+  - name: "{{ main_groupname }}"
+  - name: nftables
+
+users:
+  - username: "{{ main_username }}"
+    name: "{{ main_username }}"
+    groups: ['sudo']
+
+# influxdb
+influxdb_ip: 192.168.1.10
+influxdb_port: 8086
+
+## telegraf
+telegraf_influxdb_urls:
+  - "http://{{ influxdb_ip }}:{{ influxdb_port }}"
+telegraf_influxdb_database: telegraf
+telegraf_influxdb_username: root
+telegraf_influxdb_password: root
+telegraf_plugins_base:
+  - name: mem
+  - name: system
+  - name: cpu
+    options:
+      percpu: "true"
+      totalcpu: "true"
+      collect_cpu_time: "false"
+      report_active: "false"
+  - name: disk
+    options:
+      ignore_fs:
+        - "tmpfs"
+        - "devtmpfs"
+        - "devfs"
+      mountpoints:
+        - "/"
+  - name: diskio
+    options:
+      skip_serial_number: "true"
+  - name: kernel
+  - name: processes
+  - name: hddtemp
+  - name: net
+  - name: sensors

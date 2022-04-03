@@ -1,0 +1,4 @@
+---
+  - hosts: pihole
+    roles:
+      - role: ktz-dhcp

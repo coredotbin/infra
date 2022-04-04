@@ -1,0 +1,44 @@
+---
+
+sshd_config_path: /etc/ssh
+
+ssh_port: 22
+ssh_address_family: any
+ssh_listen_addresses: 
+  - 0.0.0.0
+
+ssh_host_key_file: /etc/ssh/ssh_host_ed25519_key
+
+ssh_allow_groups: ssh
+ssh_login_grace_time: 20
+ssh_permit_root_login: 'no'
+ssh_strict_modes: 'yes'
+ssh_max_auth_tries: 3
+ssh_max_sessions: 2
+
+ssh_pubkey_authentication: 'yes'
+
+ssh_authorized_keys_file: .ssh/authorized_keys
+
+ssh_hostbased_authentication: 'no'
+ssh_password_authentication: 'no'
+ssh_permit_empty_passwords: 'no'
+ssh_challenge_response_authentication: 'no'
+ssh_kerberos_authentication: 'no'
+ssh_gssapi_authentication: 'no'
+ssh_use_pam: 'yes'
+
+ssh_allow_agent_forwarding: 'no'
+ssh_permit_tunnel: 'no'
+
+ssh_x11_forwarding: 'no'
+
+ssh_print_motd: 'no'
+
+ssh_permit_user_env: False
+ssh_accept_env:
+  - LANG
+  - 'LC_*'
+
+ssh_banner: True
+ssh_banner_file: /etc/issue.net

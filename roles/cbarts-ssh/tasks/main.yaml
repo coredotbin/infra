@@ -1,0 +1,9 @@
+---
+
+- name: Ensure ssh server is installed
+  package:
+    name: openssh-server
+    state: present
+
+- name: Create sshd_config file
+  include_tasks: template_config.yaml

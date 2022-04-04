@@ -1,0 +1,26 @@
+---
+
+- name: Ensure destination for sshd_config exists
+  file:
+    path: "{{ sshd_config_path }}"
+    state: directory
+
+- name: Write sshd_config file
+  template:
+    src: ../templates/sshd_config.j2
+    dest: "{{ sshd_config_path }}/sshd_config"
+  become: true
+  register: sshd_config_file
+
+- name: Restart service
+  systemd:
+    name: sshd
+    enabled: yes
+    state: restarted
+  when: sshd_config_file.changed
+
+- name: Write banner file
+  template:
+    src: ../templates/issue.net.j2
+    dest: "{{ ssh_banner_file }}"
+  when: ssh_banner

@@ -1,0 +1,54 @@
+# {{ ansible_managed }}
+
+Port {{ ssh_port }}
+AddressFamily {{ ssh_address_family }}
+{% for a in ssh_listen_addresses %}
+ListenAddress {{ a }}
+{% endfor %}
+
+HostKey {{ ssh_host_key_file }}
+
+AllowGroups {{ ssh_allow_groups }}
+LoginGraceTime {{ ssh_login_grace_time }}
+PermitRootLogin {{ ssh_permit_root_login }}
+StrictModes {{ ssh_strict_modes }}
+MaxAuthTries {{ ssh_max_auth_tries }}
+MaxSessions {{ ssh_max_sessions }}
+
+PubkeyAuthentication {{ ssh_pubkey_authentication }}
+AuthorizedKeysFile {{ ssh_authorized_keys_file }}
+
+HostbasedAuthentication {{ ssh_hostbased_authentication }}
+
+PasswordAuthentication {{ ssh_password_authentication }}
+PermitEmptyPasswords {{ ssh_permit_empty_passwords }}
+ChallengeResponseAuthentication {{ ssh_challenge_response_authentication }}
+KerberosAuthentication {{ ssh_kerberos_authentication }}
+GSSAPIAuthentication {{ ssh_gssapi_authentication }}
+UsePAM {{ ssh_use_pam }}
+
+AllowAgentForwarding {{ ssh_allow_agent_forwarding }}
+PermitTunnel {{ ssh_permit_tunnel }}
+
+X11Forwarding {{ ssh_x11_forwarding }}
+PrintMotd {{ ssh_print_motd }}
+
+{% if ssh_banner == true %}
+Banner {{ ssh_banner_file }}
+{% endif %}
+
+{% if ssh_permit_user_env == true %}
+PermitUserEnvironment yes
+
+{% for e in ssh_accept_env %}
+AcceptEnv {{ e }}
+{% endfor %}
+{% else %}
+PermitUserEnvironment no
+{% endif %}
+
+{% if ansible_facts['os_family'] == 'RedHat' %}
+Subsystem sftp	/usr/libexec/openssh/sftp-server
+{% elif ansible_facts['os_family'] == 'Debian' %}
+Subsystem sftp	/usr/lib/openssh/sftp-server
+{% endif %}

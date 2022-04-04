@@ -1,19 +1,13 @@
 all:
   hosts:
     cb-rt-01:
-      ansible_host: 10.0.0.1
     hypervisor:
-      ansible_host: 10.0.1.8
     pihole: 
-      ansible_host: 10.0.1.16
     netbox:
-      ansible_host: 10.0.1.17
     hass:
-      ansible_host: 10.0.1.18
     nextcloud:
-      ansible_host: 10.0.1.20
     lin1:
-      ansible_host: 172.105.0.77
+    lin2:
   children:
     ios:
       hosts:
@@ -36,3 +30,6 @@ all:
       hosts:
         pihole:
         nextcloud:
+    dev:
+      hosts:
+        lin2:

@@ -1,0 +1,3 @@
+[submodule "roles/coredotbin.openssh"]
+	path = roles/coredotbin.openssh
+	url = https://github.com/coredotbin/ansible-role-openssh

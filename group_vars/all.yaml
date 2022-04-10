@@ -29,7 +29,11 @@ groups_to_create:
 users:
   - username: "{{ main_username }}"
     name: "{{ main_username }}"
-    groups: ['sudo']
+    groups: ['sudo', 'ssh', 'nftables']
+    github_username: coredotbin
+    update_password: on_create
+    ssh_key:
+      - "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAF8fJrqzWC3WGwqhKQpqM+IR/b433HFGdyWgirmcmY5sV/dOcpuFUC5a00WOq1+AVtA6rAhWFrijL2ubIaca9qvbwAVB7kt9MkbqaY6xGbyT/m17ycQ+lITvpSiTrM1oJ0kJTHKoyH2+C+DevjQS1UQjX3AmnXxq3mohmYRtuyet84Xig== corbin@emerald"
 
 # influxdb
 influxdb_ip: 192.168.1.10

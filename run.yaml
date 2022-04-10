@@ -1,4 +1,24 @@
 ---
   - hosts: pihole
+    vars_files:
+      - 'vars/vault.yaml'
     roles:
+      - role: ironicbadger.ansible_users
+      - role: coredotbin.openssh
+      - role: grog.package
       - role: ktz-dhcp
+
+  - hosts: nextcloud
+    vars_files:
+      - 'vars/vault.yaml'
+    roles:
+      - role: ironicbadger.ansible_users
+      - role: coredotbin.openssh
+      - role: grog.package
+
+  - hosts: dev
+    vars_files:
+      - 'vars/vault.yaml'
+    roles:
+      - role: coredotbin.openssh
+      - role: ironicbadger.ansible_users

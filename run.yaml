@@ -15,7 +15,7 @@
     - role: ironicbadger.ansible_users
     - role: coredotbin.openssh
     - role: grog.package
-    - role: nextcloud
+    - role: coredotbin.ansible_role_nextcloud
 
 - hosts: dev
   vars_files:

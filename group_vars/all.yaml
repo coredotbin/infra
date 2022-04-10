@@ -2,6 +2,7 @@
 # generic settings
 main_username: corbin
 main_groupname: "{{ main_username }}"
+domain_name: cbarts.net
 
 # grog.package
 package_list:

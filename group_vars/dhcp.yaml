@@ -23,7 +23,7 @@ subnets:
     subnet_domain: "{{ default_domain }}"
     subnet_default_lease: "{{ default_lease }}"
     subnet_max_lease: "{{ max_lease }}"
-    
+
   - cidr: 10.0.2.0 # Client
     netmask: 255.255.255.0
     range_start: 10.0.2.128

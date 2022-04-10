@@ -4,7 +4,7 @@
   include_tasks: duplicate_macs.yaml
 
 - name: ensure dhcpd package is installed
-  package:
+  ansible.builtin.package:
     name: isc-dhcp-server
     state: present
 

@@ -1,7 +1,5 @@
 ---
-#collections:
 
 roles:
-- ironicbadger.ansible_users
-#- rossmcdonald.telegraf
-- grog.package
+  - ironicbadger.ansible_users
+  - grog.package

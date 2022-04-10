@@ -2,7 +2,7 @@ all:
   hosts:
     cb-rt-01:
     hypervisor:
-    pihole: 
+    pihole:
     netbox:
     hass:
     nextcloud:

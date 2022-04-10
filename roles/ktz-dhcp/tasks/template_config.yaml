@@ -1,34 +1,35 @@
 ---
 
 - name: ensure destination for dhcp file exists
-  file:
+  ansible.builtin.file:
     path: "{{ dhcpd_conf_location }}"
+    mode: '0755'
     state: directory
 
 - name: write dhcpd file
-  template:
-    src: ../templates/dhcpd.conf.j2
+  ansible.builtin.template:
+    src: templates/dhcpd.conf.j2
     dest: "{{ dhcpd_conf_location }}/dhcpd.conf"
-    owner: "0"
-    group: "0"
+    mode: '0644'
   become: true
   register: dhcpd_file
 
 - name: restart service
-  systemd:
+  ansible.builtin.systemd:
     name: isc-dhcp-server
-    enabled: yes
+    enabled: true
     state: restarted
   when: dhcpd_file.changed
 
 - name: revoke existing leases if dhcpd file changed
-  file:
+  ansible.builtin.file:
     path: /var/lib/dhcp/dhcpd.leases
     state: absent
   when: dhcpd_file.changed
 
 - name: revoke existing leases if dhcpd file changed
-  file:
+  ansible.builtin.file:
     path: /var/lib/dhcp/dhcpd.leases
+    mode: '0644'
     state: touch
   when: dhcpd_file.changed

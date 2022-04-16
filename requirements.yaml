@@ -4,5 +4,6 @@ collections:
 
 roles:
   - ironicbadger.ansible_users
+  - coredotbin.ansible_role_openssh
   - coredotbin.ansible_role_nextcloud
   - grog.package

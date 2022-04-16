@@ -6,6 +6,7 @@ all:
     netbox:
     hass:
     nextcloud:
+    db:
     lin1:
     lin2:
   children:
@@ -17,12 +18,16 @@ all:
         hypervisor:
         pihole:
         nextcloud:
+        db:
     hypervisors:
       hosts:
         hypervisor:
     dhcp:
       hosts:
         pihole:
+    dbservers:
+      hosts:
+        db:
     vpnservers:
       hosts:
         lin1:

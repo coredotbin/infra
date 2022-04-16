@@ -1,10 +1,19 @@
 ---
+- hosts: hypervisor
+  vars_files:
+    - 'vars/vault.yaml'
+  roles:
+    - role: ironicbadger.ansible_users
+    - role: coredotbin.ansible_role_openssh
+    - role: grog.package
+    - role: protonmail_bridge
+
 - hosts: pihole
   vars_files:
     - 'vars/vault.yaml'
   roles:
     - role: ironicbadger.ansible_users
-    - role: coredotbin.openssh
+    - role: coredotbin.ansible_role_openssh
     - role: grog.package
     - role: ktz-dhcp
 
@@ -13,14 +22,22 @@
     - 'vars/vault.yaml'
   roles:
     - role: ironicbadger.ansible_users
-    - role: coredotbin.openssh
+    - role: coredotbin.ansible_role_openssh
     - role: grog.package
     - role: coredotbin.ansible_role_nextcloud
+
+- hosts: db
+  vars_files:
+    - 'vars/vault.yaml'
+  roles:
+    - role: ironicbadger.ansible_users
+    - role: coredotbin.ansible_role_openssh
+    - role: grog.package
 
 - hosts: dev
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    - role: coredotbin.openssh
+    - role: coredotbin.ansible_role_openssh
     - role: ironicbadger.ansible_users
     - role: ktz-dhcp

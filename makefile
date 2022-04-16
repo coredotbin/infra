@@ -1,7 +1,11 @@
+hypervisor:
+	ansible-playbook -b run.yaml --limit hypervisor
 pihole:
 	ansible-playbook -b run.yaml --limit pihole
 nextcloud:
 	ansible-playbook -b run.yaml --limit nextcloud
+db:
+	ansible-playbook -b run.yaml --limit pgsql
 
 dev:
 	ansible-playbook -b run.yaml --limit dev

@@ -4,9 +4,11 @@
     - 'vars/vault.yaml'
   roles:
     - role: ironicbadger.ansible_users
+    - role: ironicbadger.ansible_role_docker_compose_generator
     - role: coredotbin.ansible_role_openssh
     - role: grog.package
-    - role: protonmail_bridge
+    #- role: protonmail_bridge
+    - role: autorestic
 
 - hosts: pihole
   vars_files:

@@ -21,6 +21,8 @@ package_list:
   - name: net-tools
   - name: nmap
   - name: qemu-guest-agent
+  - name: certbot
+  - name: python3-certbot-dns-linode
 
 # ironicbadger.ansible_users
 groups_to_create:

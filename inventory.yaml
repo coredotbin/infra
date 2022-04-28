@@ -9,6 +9,7 @@ all:
     db:
     lin1:
     lin2:
+    lin3:
   children:
     ios:
       hosts:
@@ -35,6 +36,10 @@ all:
       hosts:
         pihole:
         nextcloud:
+        lin3:
+    blog:
+      hosts:
+        lin3:
     dev:
       hosts:
         lin2:

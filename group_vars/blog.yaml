@@ -1,0 +1,112 @@
+---
+
+# grog.package
+package_list:
+  - name: sudo
+  - name: openssh-server
+  - name: bash-completion
+  - name: tmux
+  - name: wget
+  - name: curl
+  - name: git
+  - name: htop
+  - name: iftop
+  - name: iotop
+  - name: ncdu
+  - name: docker
+  - name: docker-compose
+
+# ironicbadger.ansible_role_docker_compose_generator
+docker_compose_generator_output_path: /home/corbin
+# Global Environment variables
+#global_env_vars:
+appdata_path: /mnt/app-data
+
+# Container definitions
+containers:
+  - service_name: traefik
+    active: true
+    image: traefik
+    ports:
+      - 80:80
+      - 433:433
+      #- 3306:3306 # MariaDB
+      #- 6379:6379 # Redis
+    command:
+      - --entryPoints.http.address=:80
+      - --entryPoints.http.http.redirections.entryPoint.to=https
+      - --entryPoints.http.http.redirections.entryPoint.scheme=https
+      - --entryPoints.https.address=:443
+      - --entryPoints.https.http.tls.certresolver=linode
+      #- --entryPoints.https.http.tls.domains # TODO: Configure traefik roles, move this config there
+      #- --entryPoints.mariadb.address=:3306
+      #- --entryPoints.redis.address=:6379
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --certificatesResolvers.linode.acme.dnsChallenge.provider=linode
+      - "--certificatesResolvers.linode.acme.email={{ admin_email_address }}"
+      - --certificatesResolvers.linode.acme.storage=acme.json
+    environment:
+      - "LINODE_TOKEN={{ linode_dns_api_key }}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+  - service_name: mysql
+    active: true
+    image: mysql:5.7
+    #labels:
+    #  - traefik.enable=true
+    #  - traefik.tcp.routers.mysql.rule=HostSNI(`*`)
+    #  - traefik.tcp.routers.mysql.entryPoints=mariadb
+    #  - traefik.tcp.routers.mysql.service=mariadb
+    #  - traefik.tcp.services.mysql.loadbalancer.server.port=3306
+    environment:
+      - "MYSQL_ROOT_PASSWORD={{ blog_mysql_root_pass }}"
+    volumes:
+      - "{{ appdata_path }}/mysql:/var/lib/mysql"
+    restart: unless-stopped
+  #- service_name: redis
+  #  active: false
+  #  image: redis
+  #  labels:
+  #    - traefik.enable=true
+  #    - traefik.tcp.routers.redis.rule=HostSNI(`*`)
+  #    - traefik.tcp.routers.redis.entryPoints=redis
+  #    - traefik.tcp.routers.redis.service=redis
+  #    - traefik.tcp.services.redis.loadbalancer.server.port=6379
+  #  environment:
+  #    - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+  #  volumes:
+  #    - "{{ appdata_path }}/redis:/redis/data"
+  - service_name: wordpress-cbarts-net
+    active: true
+    image: wordpress
+    container_name: wp-cbarts
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.wp_cbarts.rule=Host(`cbarts.net`)
+    environment:
+      - WORDPRESS_DB_HOST=mysql
+      - "WORDPRESS_DB_USER={{ wordpress_db_user }}"
+      - "WORDPRESS_DB_PASSWORD={{ workdpress_db_password }}"
+      - WORDPRESS_DB_NAME=cbarts
+      - WORDPRESS_TABLE_PREFIX=wp
+    volumes:
+      - "{{ appdata_path }}/wp-cbarts:/var/www/html"
+    restart: unless-stopped
+  - service_name: wordpress-kspier-net
+    active: false
+    image: wordpress
+    container_name: wp-kspier
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.wp_kspier.rule=Host(`kspier.net`)
+    environment:
+      - WORDPRESS_DB_HOST=mysql
+      - "WORDPRESS_DB_USER={{ wordpress_db_user }}"
+      - "WORDPRESS_DB_PASSWORD={{ workdpress_db_password }}"
+      - WORDPRESS_DB_NAME=kspier
+      - WORDPRESS_TABLE_PREFIX=wp
+    volumes:
+      - "{{ appdata_path }}/wp-kspier:/var/www/html"
+    restart: unless-stopped

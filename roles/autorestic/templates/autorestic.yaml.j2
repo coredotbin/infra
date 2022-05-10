@@ -1,0 +1,24 @@
+# {{ ansible_managed }}
+## Template borrowed from ironicbadger (https://github.com/ironicbadger/infra/blob/master/roles/ktz-autorestic/templates/autorestic.yml.j2)
+version: {{ autorestic_version }}
+
+locations:
+{% for location in autorestic_locations %}
+  {{ location.name }}:
+    from: {{ location.from }}
+    to: 
+{% for to in location.to %}
+      - {{ to }}
+{% endfor %}
+{% endfor %}
+
+backends:
+{% for backend in autorestic_backends %}
+  {{ backend.name }}:
+    type: {{ backend.type }}
+    path: '{{ backend.path }}'
+    env:
+{% for envvar in backend.env %}
+      {{ envvar }}
+{% endfor %}
+{% endfor %}

@@ -1,0 +1,4 @@
+---
+
+autorestic_version: 2
+autorestic_config_path: '/etc/autorestic'

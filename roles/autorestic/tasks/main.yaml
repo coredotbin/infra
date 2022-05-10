@@ -1,0 +1,11 @@
+---
+- name: Ensure restic is installed
+  ansible.builtin.package:
+    name: restic
+    state: present
+
+#- name: Install autorestic
+#  include_tasks: install.yaml
+
+- name: Configure autorestic
+  include_tasks: configure.yaml

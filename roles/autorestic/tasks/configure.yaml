@@ -1,0 +1,12 @@
+---
+- name: Ensure destination for autorestic configuration exists
+  ansible.builtin.file:
+    path: "{{ autorestic_config_path }}"
+    state: directory
+
+- name: Write autorestic config file
+  ansible.builtin.template:
+    src: autorestic.yaml.j2
+    dest: "{{ autorestic_config_path }}/.autorestic.yaml"
+    backup: true
+    #owner: 

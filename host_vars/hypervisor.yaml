@@ -1,0 +1,215 @@
+---
+
+autorestic_locations:
+  - name: nextcloud-data
+    #from: "{{ appdata_path }}/nextcloud"
+    from: "{{ media_path }}/nextcloud-data"
+    to:
+      - backblaze
+
+# ironicbadger.ansible_role_docker_compose_generator
+docker_compose_generator_output_path: /home/corbin
+# Global variables
+global_env_vars:
+  - "PUID=1000"
+  - "PGID=1000"
+  - "TZ=America/New_York"
+# See group_vars/all.yaml for appdata_path and media_path variables
+container_config_path: /config
+container_data_path: /data
+
+# Home Assistant
+homeassistant:
+  default_config:
+  include_groups: true
+  include_automations: true
+  include_scripts: true
+  include_scenes: true
+  homeassistant:
+    media_dirs:
+      media: /mnt
+  ffmpeg:
+  http:
+    use_x_forwarded_for: true
+    trusted_proxies:
+      - 172.18.0.0/24
+  binary_sensor:
+    - platform: ffmpeg_motion
+      name: Office Camera Motion Detected
+      input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.office_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+      extra_arguments: "-q:v 4"
+      changes: 2      # Percent of image that must change to change status of sensor
+      reset: 5        # How long after changes occur to reset status of sensor
+      #repeat: 2      # Changes must repeat this many times
+      #repeat_time: 3 # Changes must repeat in this many seconds
+    - platform: ffmpeg_motion
+      name: Front Camera Motion Detected
+      input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.front_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+      extra_arguments: "-q:v 4"
+      changes: 4
+      reset: 5
+      repeat: 2
+      repeat_time: 3
+  camera:
+    - platform: ffmpeg
+      name: office_camera
+      input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.office_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+    - platform: ffmpeg
+      name: front_camera
+      input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.front_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+  sensor:
+    - platform: template
+      sensors:
+        nextsunrise:
+          entity_id: sun.sun
+          friendlyname: 'Next Sunrise'
+          value_template: "{{ '{{' }} as_timestamp(states.sun.sun.attributes.nextrising) | timestamp_custom(' %I:%M %p ') | replace(' 0', '') {{ '}}' }}"
+          icon_template: mdi:weather-sunset-up
+        nextsunset:
+          entity_id: sun.sun
+          friendly_name: 'Next Sunset'
+          value_template: "{{ '{{' }} as_timestamp(states.sun.sun.attributes.next_setting) | timestamp_custom(' %I:%M %p') | replace(' 0', '') {{ '}}' }}"
+          icon_template: mdi:weather-sunset-down
+
+# Container definitions
+containers:
+  - service_name: traefik
+    active: true
+    image: traefik
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    command: # TODO: Configure traefik role, move this config there
+      - --entryPoints.http.address=:80
+      - --entryPoints.http.http.redirections.entryPoint.to=https
+      - --entryPoints.http.http.redirections.entryPoint.scheme=https
+      - --entryPoints.https.address=:443
+      - --entryPoints.https.http.tls.certresolver=linode
+      #- --entryPoints.https.http.tls.domains
+      - --entryPoints.traefik.address=:8080
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker
+      - --certificatesResolvers.linode.acme.dnsChallenge.provider=linode
+      - "--certificatesResolvers.linode.acme.email={{ admin_email_address }}"
+      - --certificatesResolvers.linode.acme.storage=acme.json
+    environment:
+      - "LINODE_TOKEN={{ linode_dns_api_key }}"
+    volumes:
+      - "{{ appdata_path }}/traefik/config:/etc/traefik"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    restart: unless-stopped
+  - service_name: authelia # TODO: Configure Authelia role
+    active: false
+    image: authelia/authelia
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.authelia.rule=Host(`login.{{ domain_name }}`)"
+      - traefik.http.services.authelia.loadbalancer.server.port=9091
+      - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.{{ domain_name }}/"
+      - traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true
+      - traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name, Remove-Email
+    volumes:
+      - "{{ appdata_path }}/authelia:{{ container_config_path }}"
+    expose:
+    restart: unless-stopped
+  - service_name: homeassistant
+    active: true
+    image: ghcr.io/home-assistant/home-assistant:stable
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.homeassistant.rule=Host(`home.{{ domain_name }}`)"
+      - traefik.http.services.homeassistant.loadbalancer.server.port=8123
+    volumes:
+      - "{{ appdata_path }}/homeassistant:{{ container_config_path }}"
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ media_path }}/homeassistant:/mnt"
+    privileged: true
+    restart: unless-stopped
+  - service_name: jellyfin
+    active: true
+    image: jellyfin/jellyfin
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.{{ domain_name }}`)"
+      - traefik.http.services.jellyfin.loadbalancer.server.port=8096
+    environment:
+      - "JELLYFIN_PublishedServerUrl=jellyfin.{{ domain_name }}"
+    volumes:
+      - "{{ appdata_path }}/jellyfin:/config"
+      - "{{ media_path }}:/media:z"
+    restart: unless-stopped
+  - service_name: transmission
+    active: true
+    image: haugene/transmission-openvpn
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.transmission.rule=Host(`transmission.{{ domain_name }}`)"
+      - traefik.http.services.transmission.loadbalancer.server.port=9091
+    environment:
+      #- OPENVPN_PROVIDER=protonvpn
+      #- OPENVPN_CONFIG=node-ch-05.protonvpn.net.tcp
+      #- OPENVPN_CONFIG=switzerland
+      #- "OPENVPN_USERNAME={{ protonvpn_username }}"
+      #- "OPENVPN_PASSWORD={{ protonvpn_password }}"
+      - OPENVPN_PROVIDER=PIA
+      - OPENVPN_CONFIG=switzerland
+      - "OPENVPN_USERNAME={{ pia_username }}"
+      - "OPENVPN_PASSWORD={{ pia_password }}"
+      - LOCAL_NETWORK=10.0.0.0/16
+      - TRANSMISSION_HOME=/config
+      - TRANSMISSION_DOWNLOAD_DIR=/data
+      #- OPENVPN_OPTS="--inactive 3600 --ping 10 --ping-exit 60"
+      #- ENABLE_UFW=false
+    include_global_env_vars: true
+    volumes:
+      - "{{ appdata_path }}/transmission:/config"
+      - "{{ media_path }}/downloads:/data:z"
+    cap_add:
+      - NET_ADMIN
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    restart: unless-stopped
+  - service_name: sonarr
+    active: true
+    image: linuxserver/sonarr
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.{{ domain_name }}`)"
+      - traefik.http.services.sonarr.loadbalancer.server.port=8989
+    include_global_env_vars: true
+    volumes:
+      - "{{ appdata_path }}/sonarr:{{ container_config_path }}"
+      - "{{ media_path }}/tv:/tv:z"
+      - "{{ media_path }}/downloads/tv:/downloads:z"
+    restart: unless-stopped
+  - service_name: radarr
+    active: true
+    image: linuxserver/radarr
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.radarr.rule=Host(`radarr.{{ domain_name }}`)"
+      - traefik.http.services.radarr.loadbalancer.server.port=7878
+    include_global_env_vars: true
+    volumes:
+      - "{{ appdata_path }}/radarr:{{ container_config_path }}"
+      - "{{ media_path }}/movies:/movies:z"
+      - "{{ media_path }}/downloads/movies:/downloads:z"
+    restart: unless-stopped
+  - service_name: prowlarr
+    active: true
+    image: linuxserver/prowlarr:develop
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.{{ domain_name }}`)"
+      - traefik.http.services.prowlarr.loadbalancer.server.port=9696
+    include_global_env_vars: true
+    volumes:
+      - "{{ appdata_path }}/prowlarr:{{ container_config_path }}"
+    restart: unless-stopped

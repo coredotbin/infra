@@ -4,6 +4,9 @@ main_username: corbin
 main_groupname: "{{ main_username }}"
 domain_name: cbarts.net
 
+appdata_path: /pool1/app-data
+media_path: /pool1/media
+
 # grog.package
 package_list:
   - name: sudo
@@ -32,7 +35,7 @@ groups_to_create:
 users:
   - username: "{{ main_username }}"
     name: "{{ main_username }}"
-    groups: ['sudo', 'ssh', 'nftables']
+    groups: ['sudo', 'ssh', 'nftables', 'docker']
     github_username: coredotbin
     update_password: on_create
     ssh_key:

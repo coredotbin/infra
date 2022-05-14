@@ -4,6 +4,7 @@ default_domain: "cbarts.net"
 default_dns: 10.0.1.16
 default_lease: 1209600
 max_lease: 1209600
+authoritative: true
 
 subnets:
   - cidr: 10.0.0.0 # Management
@@ -59,6 +60,7 @@ reservations:
   - {mac: 98:fa:9b:56:d4:00, ip: 10.0.2.16, name: PF1RRR47}
   # - {mac: , ip 10.0.2.7, name: PF1RRR47-wifi}
 
+  - {mac: c4:41:1e:6a:bb:0c, ip: 10.0.2.150, name: linksys}
   - {mac: 84:2a:fd:ab:1e:80, ip: 10.0.2.20, name: hp-printer}
 
   - {mac: 7a:a7:ab:36:e5:e4, ip: 10.0.2.30, name: kristen-cell}

@@ -1,5 +1,9 @@
 # {{ ansible_managed }}
 
+{% if authoritative %}
+authoritative;
+{% endif %}
+
 option domain-name "{{ default_domain }}";
 option domain-name-servers {{ default_dns }};
 

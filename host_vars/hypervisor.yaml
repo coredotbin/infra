@@ -77,28 +77,43 @@ containers:
     active: true
     image: traefik
     ports:
-      - 80:80
-      - 443:443
-      - 8080:8080
-    command: # TODO: Configure traefik role, move this config there
-      - --entryPoints.http.address=:80
-      - --entryPoints.http.http.redirections.entryPoint.to=https
-      - --entryPoints.http.http.redirections.entryPoint.scheme=https
-      - --entryPoints.https.address=:443
-      - --entryPoints.https.http.tls.certresolver=linode
-      #- --entryPoints.https.http.tls.domains
-      - --entryPoints.traefik.address=:8080
-      - --api.insecure=true
+      - 80:80     # http
+      - 443:443   # https
+      - 8080:8080 # unifi-inform
+    command:
       - --api.dashboard=true
+
       - --providers.docker
+      - --providers.docker.exposedByDefault=false
+      
+      # Entrypoints
+      - --entrypoints.http.address=:80
+      - --entrypoints.http.http.redirections.entryPoint.to=https
+      - --entrypoints.http.http.redirections.entryPoint.scheme=https
+
+      - --entrypoints.https.address=:443
+      - --entrypoints.https.http.tls.certresolver=linode
+      - "--entrypoints.https.http.tls.domains[0].main={{ domain_name }}"
+      - "--entrypoints.https.http.tls.domains[0].sans=*.{{ domain_name }}"
+
+      - --entrypoints.unifi-inform.address=:8080
+
+      # Let's Encrypt certificates
       - --certificatesResolvers.linode.acme.dnsChallenge.provider=linode
       - "--certificatesResolvers.linode.acme.email={{ admin_email_address }}"
-      - --certificatesResolvers.linode.acme.storage=acme.json
+      - --certificatesResolvers.linode.acme.storage=/etc/traefik/acme.json
+      
+      - --serversTransport.insecureSkipVerify=true
     environment:
       - "LINODE_TOKEN={{ linode_dns_api_key }}"
     volumes:
       - "{{ appdata_path }}/traefik/config:/etc/traefik"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      - traefik.enable=true
+      - treafik.http.routers.api.entrypoints=http
+      - "traefik.http.routers.api.rule=Host(`traefik.{{ domain_name }}`)"
+      - traefik.http.routers.api.service=api@internal
     restart: unless-stopped
   - service_name: authelia # TODO: Configure Authelia role
     active: false
@@ -109,7 +124,7 @@ containers:
       - traefik.http.services.authelia.loadbalancer.server.port=9091
       - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.{{ domain_name }}/"
       - traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true
-      - traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name, Remove-Email
+      - traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email
     volumes:
       - "{{ appdata_path }}/authelia:{{ container_config_path }}"
     expose:
@@ -126,6 +141,28 @@ containers:
       - /etc/localtime:/etc/localtime:ro
       - "{{ media_path }}/homeassistant:/mnt"
     privileged: true
+    restart: unless-stopped
+  - service_name: unifi
+    active: true
+    #image: lscr.io/linuxserver/unifi-controller:latest
+    ports:
+      - 3478:3478
+    image: jacobalberty/unifi:latest
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.unifi.rule=Host(`unifi.{{ domain_name }}`)"
+      - traefik.http.routers.unifi.service=unifi@docker
+      - traefik.http.routers.unifi.tls=true
+      - traefik.http.services.unifi.loadbalancer.server.port=8443
+      - traefik.http.services.unifi.loadbalancer.server.scheme=https
+      - "traefik.http.routers.unifi-inform.rule=Host(`unifi.{{ domain_name }}`) && PathPrefix(`/inform`)"
+      - traefik.http.routers.unifi-inform.entrypoints=unifi-inform
+      - traefik.http.routers.unifi-inform.service=unifi-inform@docker
+      - traefik.http.services.unifi-inform.loadbalancer.server.port=8080
+      - traefik.http.services.unifi-inform.loadbalancer.server.scheme=http
+    volumes:
+      #- "{{ appdata_path }}/unifi:/config"
+      - "{{ appdata_path }}/unifi:/unifi"
     restart: unless-stopped
   - service_name: jellyfin
     active: true

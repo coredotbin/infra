@@ -164,6 +164,17 @@ containers:
       #- "{{ appdata_path }}/unifi:/config"
       - "{{ appdata_path }}/unifi:/unifi"
     restart: unless-stopped
+  - service_name: librespeed
+    active: true
+    image: adolfintel/speedtest
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.librespeed.rule=Host(`librespeed.{{ domain_name }}`)"
+      - traefik.http.services.librespeed.loadbalancer.server.port=80
+    environment:
+      - MODE=standalone
+      - DISABLE_IPINFO=true
+      - DISTANCE=false
   - service_name: jellyfin
     active: true
     image: jellyfin/jellyfin
@@ -178,7 +189,7 @@ containers:
       - "{{ media_path }}:/media:z"
     restart: unless-stopped
   - service_name: transmission
-    active: true
+    active: false
     image: haugene/transmission-openvpn
     labels:
       - traefik.enable=true

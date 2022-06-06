@@ -19,6 +19,7 @@ container_config_path: /config
 container_data_path: /data
 
 # Home Assistant
+homeassistant_config: "{{ appdata_path }}/homeassistant"
 homeassistant:
   default_config:
   include_groups: true
@@ -32,11 +33,12 @@ homeassistant:
   http:
     use_x_forwarded_for: true
     trusted_proxies:
-      - 172.18.0.0/24
+      - 172.16.0.0/12
   binary_sensor:
     - platform: ffmpeg_motion
       name: Office Camera Motion Detected
-      input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.office_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+      #input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.office_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+      input: rtsp://{{ camera_username }}:{{ camera_password }}@10.0.4.32:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
       extra_arguments: "-q:v 4"
       changes: 2      # Percent of image that must change to change status of sensor
       reset: 5        # How long after changes occur to reset status of sensor
@@ -44,7 +46,8 @@ homeassistant:
       #repeat_time: 3 # Changes must repeat in this many seconds
     - platform: ffmpeg_motion
       name: Front Camera Motion Detected
-      input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.front_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+      #input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.front_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+      input: rtsp://{{ camera_username }}:{{ camera_password }}@10.0.4.35:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
       extra_arguments: "-q:v 4"
       changes: 4
       reset: 5
@@ -53,10 +56,12 @@ homeassistant:
   camera:
     - platform: ffmpeg
       name: office_camera
-      input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.office_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+      #input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.office_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+      input: rtsp://{{ camera_username }}:{{ camera_password }}@10.0.4.32:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
     - platform: ffmpeg
       name: front_camera
-      input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.front_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+      #input: rtsp://{{ camera_username }}:{{ camera_password }}@{{ cameras.front_camera.wired_ip_address }}:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
+      input: rtsp://{{ camera_username }}:{{ camera_password }}@10.0.4.35:544/cam/realmonitor?channel=1&subtype=0&authbasic=64
   sensor:
     - platform: template
       sensors:
@@ -80,6 +85,7 @@ containers:
       - 80:80     # http
       - 443:443   # https
       - 8080:8080 # unifi-inform
+      #- 5432:5432 # postgresql
     command:
       - --api.dashboard=true
 
@@ -98,6 +104,8 @@ containers:
 
       - --entrypoints.unifi-inform.address=:8080
 
+      #- --entrypoints.postgresql.address=:5432
+
       # Let's Encrypt certificates
       - --certificatesResolvers.linode.acme.dnsChallenge.provider=linode
       - "--certificatesResolvers.linode.acme.email={{ admin_email_address }}"
@@ -115,6 +123,35 @@ containers:
       - "traefik.http.routers.api.rule=Host(`traefik.{{ domain_name }}`)"
       - traefik.http.routers.api.service=api@internal
     restart: unless-stopped
+  - service_name: postgres
+    active: true
+    image: postgres:latest
+    #labels:
+    #  - traefik.enable=true
+    #  - "treafik.tcp.routers.postgres.rule=Host(`postgres.{{ domain_name `)"
+    #  - traefik.tcp.services.postgres.loadbalancer.server.port=5432
+    #  - traefik.tcp.routers.postgres.entrypoints=postgresql
+    #ports:
+    #  - 5432:5432
+    environment:
+      - "POSTGRES_USER={{ main_username }}"
+      - "POSTGRES_PASSWORD={{ postgres_pass }}"
+      - POSTGRES_MULTIPLE_DATABASES=nextcloud,tandoor,traefik
+    volumes:
+      - "{{ appdata_path }}/postgresql/data:/var/lib/postgresql/data"
+      # All credit to mrts on Github - https://github.com/mrts/docker-postgresql-multiple-databases
+      - "{{ appdata_path }}/postgresql/docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d"
+    restart: always
+  - service_name: redis
+    active: false
+    image: bitnami/redis:latest
+    #labels:
+    #  - traefik.enable=true
+    #  - "traefik.http.routers.redis.rule=Host(`redis.{{ domain_name }}`)"
+    #  - traefik.http.services.redis.loadbalancer.server.port=6379
+    volumes:
+      - /var/run/redis.sock:/var/run/redis.sock:z
+    restart: always
   - service_name: authelia # TODO: Configure Authelia role
     active: false
     image: authelia/authelia
@@ -145,9 +182,9 @@ containers:
   - service_name: unifi
     active: true
     #image: lscr.io/linuxserver/unifi-controller:latest
+    image: jacobalberty/unifi:latest
     ports:
       - 3478:3478
-    image: jacobalberty/unifi:latest
     labels:
       - traefik.enable=true
       - "traefik.http.routers.unifi.rule=Host(`unifi.{{ domain_name }}`)"
@@ -175,6 +212,29 @@ containers:
       - MODE=standalone
       - DISABLE_IPINFO=true
       - DISTANCE=false
+    restart: unless-stopped
+  - service_name: tandoor
+    active: true
+    image: vabene1111/recipes
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.tandoor.rule=Host(`recipes.{{ domain_name }}`)"
+      - traefik.http.services.tandoor.loadbalancer.server.port=8080
+    environment:
+      - ALLOWED_HOSTS=*
+      - "SECRET_KEY={{ tandoor_secret_key }}"
+      - DB_ENGINE=django.db.backends.postgresql
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=tandoor
+      - "POSTGRES_PASSWORD={{ postgres_pass }}"
+      - POSTGRES_DB=tandoor
+    volumes:
+      - "{{ appdata_path }}/tandoor/staticfiles:/opt/recipes/staticfiles"
+      - "{{ appdata_path }}/tandoor/mediafiles:/opt/recipes/mediafiles"
+    depends_on:
+      - postgres
+    restart: unless-stopped
   - service_name: jellyfin
     active: true
     image: jellyfin/jellyfin

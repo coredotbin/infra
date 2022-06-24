@@ -1,0 +1,3 @@
+[submodule "roles/docker_host/files/docker-postgresql-multiple-databases"]
+	path = roles/docker_host/files/docker-postgresql-multiple-databases
+	url = https://github.com/coredotbin/docker-postgresql-multiple-databases

@@ -136,11 +136,12 @@ containers:
     environment:
       - "POSTGRES_USER={{ main_username }}"
       - "POSTGRES_PASSWORD={{ postgres_pass }}"
-      - POSTGRES_MULTIPLE_DATABASES=nextcloud,tandoor,traefik
+      - "POSTGRES_MULTIPLE_DATABASES=nextcloud:{{ postgres_nextcloud_pass }},tandoor:{{ postgres_tandoor_pass }}"
     volumes:
       - "{{ appdata_path }}/postgresql/data:/var/lib/postgresql/data"
-      # All credit to mrts on Github - https://github.com/mrts/docker-postgresql-multiple-databases
-      - "{{ appdata_path }}/postgresql/docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d"
+      # Credit to mrts on Github - https://github.com/mrts/docker-postgresql-multiple-databases
+      # Forked here - https://github.com/coredotbin/docker-postgresql-multiple-databases
+      - "{{ appdata_path }}/postgresql/docker-postgresql-multiple-databases/create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh"
     restart: always
   - service_name: redis
     active: false

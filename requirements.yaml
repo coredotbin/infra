@@ -3,8 +3,8 @@ collections:
   - community.general
 
 roles:
-  - ironicbadger.ansible_users
-  - ironicbadger.ansible_role_docker_compose_generator
+  #- ironicbadger.ansible_users
+  - ironicbadger.docker_compose_generator
   - coredotbin.ansible_role_openssh
   - coredotbin.ansible_role_nextcloud
   - grog.package

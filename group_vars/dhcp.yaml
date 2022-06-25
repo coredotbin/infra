@@ -1,6 +1,6 @@
 ---
 
-default_domain: "cbarts.net"
+default_domain: "{{ domain_name }}"
 default_dns: 10.0.1.16
 default_lease: 1209600
 max_lease: 1209600
@@ -34,18 +34,9 @@ subnets:
     subnet_default_lease: "{{ default_lease }}"
     subnet_max_lease: "{{ max_lease }}"
 
-  # - cidr: 10.0.3.0 # Guest
-  #   netmask: 255.255.255.0
-  #   range_start: 10.0.3.2
-  #   range_end: 10.0.3.253
-  #   routers: 10.0.3.1
-  #   subnet_domain: "{{ default_domain }}"
-  #   subnet_default_lease: "{{ default_lease }}"
-  #   subnet_max_lease: "{{ max_lease }}"
-
   - cidr: 10.0.4.0 # IoT
     netmask: 255.255.255.0
-    range_start: 10.0.4.2
+    range_start: 10.0.4.128
     range_end: 10.0.4.253
     routers: 10.0.4.1
     subnet_domain: "{{ default_domain }}"
@@ -53,23 +44,35 @@ subnets:
     subnet_max_lease: "{{ max_lease }}"
 
 reservations:
-  - {mac: 8c:16:45:5c:fb:2d, ip: 10.0.2.12, name: emerald}
-  - {mac: 0c:54:15:b8:12:76, ip: 10.0.2.13, name: emerald-wifi}
-  - {mac: 30:9c:23:00:65:61, ip: 10.0.2.14, name: corbin-desktop}
-  - {mac: ac:f6:f7:b2:c9:ec, ip: 10.0.2.15, name: corbin-cell}
-  - {mac: 98:fa:9b:56:d4:00, ip: 10.0.2.16, name: PF1RRR47}
-  # - {mac: , ip 10.0.2.7, name: PF1RRR47-wifi}
+  - {mac: '8c:16:45:5c:fb:2d', ip: 10.0.2.12, name: emerald}
+  - {mac: '0c:54:15:b8:12:76', ip: 10.0.2.13, name: emerald-wifi}
+  - {mac: '30:9c:23:00:65:61', ip: 10.0.2.14, name: corbin-desktop}
+  - {mac: 'ac:f6:f7:b2:c9:ec', ip: 10.0.2.15, name: corbin-cell}
+  - {mac: '98:fa:9b:56:d4:00', ip: 10.0.2.16, name: PF1RRR47}
 
-  - {mac: c4:41:1e:6a:bb:0c, ip: 10.0.2.150, name: linksys}
-  - {mac: 84:2a:fd:ab:1e:80, ip: 10.0.2.20, name: hp-printer}
+  - {mac: '7a:a7:ab:36:e5:e4', ip: 10.0.2.20, name: kristen-cell}
 
-  - {mac: 7a:a7:ab:36:e5:e4, ip: 10.0.2.30, name: kristen-cell}
+  - {mac: '84:2a:fd:ab:1e:80', ip: 10.0.2.40, name: hp-printer}
 
-  - {mac: 40:3f:8c:70:cf:11, ip: 10.0.4.2, name: office-switch}
-  - {mac: 40:3f:8c:f2:a8:79, ip: 10.0.4.3, name: office-lamp}
-  - {mac: 60:a4:b7:3f:19:47, ip: 10.0.4.4, name: cleo-lights}
-  - {mac: 40:3f:8c:70:cb:2c, ip: 10.0.4.5, name: bedroom-switch}
-  - {mac: 60:32:b1:97:36:80, ip: 10.0.4.6, name: bedroom-bulb-1}
-  - {mac: 3c:84:6a:c3:83:ac, ip: 10.0.4.7, name: bedroom-bulb-2}
-  - {mac: 40:3f:8c:f2:aa:17, ip: 10.0.4.8, name: bedroom-fan}
-  - {mac: 60:a4:b7:3f:36:cd, ip: 10.0.4.9, name: fairy-lights}
+  - {mac: 'ac:ae:19:b4:28:83', ip: 10.0.2.50, name: coroku}
+  #- {mac: '', ip: 10.0.2.51, name: kristens-roku}
+
+  - {mac: '40:3f:8c:70:cf:11', ip: 10.0.4.2, name: office-switch}
+  - {mac: '40:3f:8c:f2:a8:79', ip: 10.0.4.3, name: office-lamp}
+  - {mac: '60:a4:b7:3f:19:47', ip: 10.0.4.4, name: cleo-lights}
+  - {mac: '40:3f:8c:70:cb:2c', ip: 10.0.4.5, name: bedroom-switch}
+  - {mac: '60:32:b1:97:36:80', ip: 10.0.4.6, name: bedroom-bulb-1}
+  - {mac: '3c:84:6a:c3:83:ac', ip: 10.0.4.7, name: bedroom-bulb-2}
+  - {mac: '40:3f:8c:f2:aa:17', ip: 10.0.4.8, name: bedroom-fan}
+  - {mac: '60:a4:b7:3f:36:cd', ip: 10.0.4.9, name: fairy-lights}
+
+  - {mac: '9c:8e:cd:36:dc:5e', ip: 10.0.4.32, name: office-cam} # Wired
+  - {mac: '9c:8e:cd:36:e2:3a', ip: 10.0.4.33, name: office-cam-wifi} # WiFi
+  - {mac: '9c:8e:cd:36:dc:86', ip: 10.0.4.34, name: front-cam} # Wired
+  - {mac: '9c:8e:cd:36:e2:62', ip: 10.0.4.35, name: front-cam-wifi} # WiFi
+  #- {mac: 9c:8e:cd:36:dc:5e, ip: "{{ cameras.office_camera.wired_ip_address }}", name: office-cam} # Wired
+  #- {mac: 9c:8e:cd:36:e2:3a, ip: "{{ cameras.office_camera.wireless_ip_address }}",  name: office-cam-wifi} # WiFi
+  #- {mac: 9c:8e:cd:36:dc:86, ip: "{{ cameras.front_camera.wired_ip_address }}", name: front-cam} # Wired
+  #- {mac: 9c:8e:cd:36:e2:62, ip: "{{ cameras.front_camera.wireless_ip_address }}", name: front-cam-wifi} # WiFi
+  #- {mac: 9c:8e:cd:36:, ip: 10.0.4.36, name: cleo-cam} # Wired
+  #- {mac: 9c:8e:cd:36:, ip: 10.0.4.37, name: cleo-cam} # WiFi

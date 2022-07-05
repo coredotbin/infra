@@ -1,5 +1,5 @@
 ---
-- hosts: hypervisor
+- hosts: docker_hosts
   vars_files:
     - 'vars/vault.yaml'
   roles:

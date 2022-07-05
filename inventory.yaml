@@ -19,7 +19,7 @@ all:
         pihole:
         nextcloud:
         db:
-    hypervisors:
+    docker_hosts:
       hosts:
         hypervisor:
     dhcp:

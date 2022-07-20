@@ -241,15 +241,21 @@ containers:
     restart: unless-stopped
   - service_name: jellyfin
     active: true
-    image: jellyfin/jellyfin
+    image: jellyfin/jellyfin:10.8
+    group_add:
+      - 122 # TODO: cat /etc/group
     labels:
       - traefik.enable=true
       - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.{{ domain_name }}`)"
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
     environment:
       - "JELLYFIN_PublishedServerUrl=jellyfin.{{ domain_name }}"
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128 # TODO: lshw -c video
+      - /dev/dri/card0:/dev/dri/card0
     volumes:
       - "{{ appdata_path }}/jellyfin:/config"
+      - "{{ cache_path }}/jellyfin:/cache"
       - "{{ media_path }}:/media:z"
     restart: unless-stopped
   - service_name: transmission

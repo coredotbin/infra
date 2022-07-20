@@ -17,6 +17,7 @@ backends:
   {{ backend.name }}:
     type: {{ backend.type }}
     path: '{{ backend.path }}'
+	key: {{ backend.key }}
     env:
 {% for envvar in backend.env %}
       {{ envvar }}

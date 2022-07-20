@@ -2,8 +2,11 @@
 
 autorestic_locations:
   - name: nextcloud-data
-    #from: "{{ appdata_path }}/nextcloud"
     from: "{{ media_path }}/nextcloud-data"
+    to:
+      - backblaze
+  - name: app-data
+    from: "{{ appdata_path}}"
     to:
       - backblaze
 

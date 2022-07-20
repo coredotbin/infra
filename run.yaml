@@ -3,27 +3,24 @@
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    #- role: ironicbadger.ansible_users
+    - role: docker_host
     - role: ironicbadger.docker_compose_generator
     - role: coredotbin.ansible_role_openssh
     - role: grog.package
-    #- role: protonmail_bridge
     - role: autorestic
 
 - hosts: pihole
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    #- role: ironicbadger.ansible_users
     - role: coredotbin.ansible_role_openssh
-    - role: grog.package
     - role: ktz-dhcp
+    - role: grog.package
 
 - hosts: nextcloud
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    #- role: ironicbadger.ansible_users
     - role: coredotbin.ansible_role_openssh
     - role: grog.package
     - role: coredotbin.ansible_role_nextcloud
@@ -32,7 +29,6 @@
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    #- role: ironicbadger.ansible_users
     - role: coredotbin.ansible_role_openssh
     - role: grog.package
 
@@ -41,5 +37,4 @@
     - 'vars/vault.yaml'
   roles:
     - role: coredotbin.ansible_role_openssh
-    #- role: ironicbadger.ansible_users
     - role: ktz-dhcp

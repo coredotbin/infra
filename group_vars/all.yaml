@@ -4,8 +4,9 @@ main_username: corbin
 main_groupname: "{{ main_username }}"
 domain_name: cbarts.net
 
-appdata_path: /pool1/app-data
-media_path: /pool1/media
+appdata_path: /pool1/app-data # ZFS RAID-Z2
+media_path: /pool1/media # ZFS RAID-Z2
+cache_path: /mnt/ssd/cache # /dev/sdb, Samsung SSD
 
 # grog.package
 package_list:

@@ -128,7 +128,7 @@ containers:
     restart: unless-stopped
   - service_name: postgres
     active: true
-    image: postgres:latest
+    image: postgres:14
     #labels:
     #  - traefik.enable=true
     #  - "treafik.tcp.routers.postgres.rule=Host(`postgres.{{ domain_name `)"

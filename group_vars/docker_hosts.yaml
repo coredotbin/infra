@@ -119,7 +119,7 @@ containers:
       - "LINODE_TOKEN={{ linode_dns_api_key }}"
     volumes:
       - "{{ appdata_path }}/traefik/config:/etc/traefik"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       - traefik.enable=true
       - treafik.http.routers.api.entrypoints=http
@@ -139,7 +139,7 @@ containers:
     environment:
       - "POSTGRES_USER={{ main_username }}"
       - "POSTGRES_PASSWORD={{ postgres_pass }}"
-      - "POSTGRES_MULTIPLE_DATABASES=nextcloud:{{ postgres_nextcloud_pass }},tandoor:{{ postgres_tandoor_pass }}"
+      - "POSTGRES_MULTIPLE_DATABASES=nextcloud:{{ postgres_nextcloud_pass }},tandoor:{{ postgres_tandoor_pass }},gitea:{{ postgres_gitea_pass }}"
     volumes:
       - "{{ appdata_path }}/postgresql/data:/var/lib/postgresql/data"
       # Credit to mrts on Github - https://github.com/mrts/docker-postgresql-multiple-databases
@@ -204,6 +204,27 @@ containers:
     volumes:
       #- "{{ appdata_path }}/unifi:/config"
       - "{{ appdata_path }}/unifi:/unifi"
+    restart: unless-stopped
+  - service_name: gitea
+    active: true
+    image: gitea/gitea:1.16.9
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.gitea.rule=Host(`gitea.{{ domain_name }}`)"
+      - traefik.http.services.librespeed.loadbalancer.server.port=3000
+    include_global_env_vars: true
+    environment:
+      - GITEA__database__DB_TYPE=postgres
+      - GITEA__database__HOST=postgres:5432
+      - GITEA__database__NAME=gitea
+      - GITEA__database__USER=gitea
+      - "GITEA__database__PASS={{ postgres_gitea_pass }}"
+    volumes:
+      - "{{ appdata_path }}/gitea:/data"
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends:
+      - postgres
     restart: unless-stopped
   - service_name: librespeed
     active: true

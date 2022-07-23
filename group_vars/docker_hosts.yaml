@@ -211,7 +211,7 @@ containers:
     labels:
       - traefik.enable=true
       - "traefik.http.routers.gitea.rule=Host(`gitea.{{ domain_name }}`)"
-      - traefik.http.services.librespeed.loadbalancer.server.port=3000
+      - traefik.http.services.gitea.loadbalancer.server.port=3000
     include_global_env_vars: true
     environment:
       - GITEA__database__DB_TYPE=postgres
@@ -223,7 +223,7 @@ containers:
       - "{{ appdata_path }}/gitea:/data"
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    depends:
+    depends_on:
       - postgres
     restart: unless-stopped
   - service_name: librespeed
@@ -305,9 +305,6 @@ containers:
       driver: json-file
       options:
         max-size: 10m
-    dns:
-      - 1.1.1.1
-      - 1.0.0.1
     restart: unless-stopped
   - service_name: sonarr
     active: true

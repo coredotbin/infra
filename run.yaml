@@ -6,8 +6,8 @@
     - role: docker_host
     - role: ironicbadger.docker_compose_generator
     - role: coredotbin.ansible_role_openssh
-    - role: grog.package
     - role: autorestic
+    - role: grog.package
 
 - hosts: pihole
   vars_files:
@@ -22,8 +22,8 @@
     - 'vars/vault.yaml'
   roles:
     - role: coredotbin.ansible_role_openssh
-    - role: grog.package
     - role: coredotbin.ansible_role_nextcloud
+    - role: grog.package
 
 - hosts: db
   vars_files:
@@ -38,3 +38,4 @@
   roles:
     - role: coredotbin.ansible_role_openssh
     - role: ktz-dhcp
+    - role: grog.package

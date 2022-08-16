@@ -95,6 +95,8 @@ containers:
     #  - traefik.enable=true
     #  - "traefik.http.routers.redis.rule=Host(`redis.{{ domain_name }}`)"
     #  - traefik.http.services.redis.loadbalancer.server.port=6379
+    environment:
+      - "REDIS_PASSWORD={{ redis_password }}"
     volumes:
       - /var/run/redis.sock:/var/run/redis.sock:z
     restart: always
@@ -111,6 +113,9 @@ containers:
     volumes:
       - "{{ appdata_path }}/authelia:{{ container_config_path }}"
     expose:
+    depends_on:
+      - redis
+      - postgres
     restart: unless-stopped
   - service_name: homeassistant
     active: true

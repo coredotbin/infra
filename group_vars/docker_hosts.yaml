@@ -117,6 +117,14 @@ containers:
       - redis
       - postgres
     restart: unless-stopped
+  - service_name: hydroxide
+    active: true
+    image: ghcr.io/coredotbin/hydroxide-docker:master
+    command:
+      - "smtp"
+    volumes:
+      - "{{ appdata_path }}/hydroxide:/.config/hydroxide"
+    restart: unless-stopped
   - service_name: homeassistant
     active: true
     image: ghcr.io/home-assistant/home-assistant:stable

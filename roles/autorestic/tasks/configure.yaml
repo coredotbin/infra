@@ -9,4 +9,3 @@
     src: autorestic.yaml.j2
     dest: "{{ autorestic_config_path }}/.autorestic.yaml"
     backup: true
-    #owner: 

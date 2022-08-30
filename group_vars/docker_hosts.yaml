@@ -323,3 +323,11 @@ containers:
     volumes:
       - "{{ appdata_path }}/prowlarr:{{ container_config_path }}"
     restart: unless-stopped
+  - service_name: vaultwarden
+    active: true
+    image: 
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.vault.rule=Host(`vault.{{ domain_name}}`)"
+      - traefik.http.service.vault.loadbalancer.server.port=8080
+    restart: unless-stopped

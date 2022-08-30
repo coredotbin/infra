@@ -325,9 +325,13 @@ containers:
     restart: unless-stopped
   - service_name: vaultwarden
     active: true
-    image: 
+    image: vaultwarden/server:latest
     labels:
       - traefik.enable=true
-      - "traefik.http.routers.vault.rule=Host(`vault.{{ domain_name}}`)"
-      - traefik.http.service.vault.loadbalancer.server.port=8080
+      - "traefik.http.routers.vault.rule=Host(`vault.{{ domain_name }}`)"
+      - traefik.http.services.vault.loadbalancer.server.port=80
+    volumes:
+      - "{{ appdata_path}}/vaultwarden/server:/data"
+    environment:
+      - "DATABASE_URL=postgresql://{{ postgres_vault_user }}:{{ postgres_vault_pass }}@postgres/vaultwarden"
     restart: unless-stopped

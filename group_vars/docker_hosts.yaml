@@ -27,16 +27,18 @@ containers:
     active: true
     image: traefik
     ports:
-      - 80:80     # http
-      - 443:443   # https
-      - 8080:8080 # unifi-inform
-      #- 5432:5432 # postgresql
+      # http
+      - 80:80
+      # https
+      - 443:443
+      # unifi-inform
+      - 8080:8080
     command:
       - --api.dashboard=true
 
       - --providers.docker
       - --providers.docker.exposedByDefault=false
-      
+
       # Entrypoints
       - --entrypoints.http.address=:80
       - --entrypoints.http.http.redirections.entryPoint.to=https
@@ -49,13 +51,11 @@ containers:
 
       - --entrypoints.unifi-inform.address=:8080
 
-      #- --entrypoints.postgresql.address=:5432
-
       # Let's Encrypt certificates
       - --certificatesResolvers.linode.acme.dnsChallenge.provider=linode
       - "--certificatesResolvers.linode.acme.email={{ admin_email_address }}"
       - --certificatesResolvers.linode.acme.storage=/etc/traefik/acme.json
-      
+
       - --serversTransport.insecureSkipVerify=true
     environment:
       - "LINODE_TOKEN={{ linode_dns_api_key }}"
@@ -71,51 +71,56 @@ containers:
   - service_name: postgres
     active: true
     image: postgres:14
-    #labels:
-    #  - traefik.enable=true
-    #  - "treafik.tcp.routers.postgres.rule=Host(`postgres.{{ domain_name `)"
-    #  - traefik.tcp.services.postgres.loadbalancer.server.port=5432
-    #  - traefik.tcp.routers.postgres.entrypoints=postgresql
-    #ports:
-    #  - 5432:5432
     environment:
       - "POSTGRES_USER={{ main_username }}"
       - "POSTGRES_PASSWORD={{ postgres_pass }}"
-      - "POSTGRES_MULTIPLE_DATABASES=nextcloud:{{ postgres_nextcloud_pass }},tandoor:{{ postgres_tandoor_pass }},gitea:{{ postgres_gitea_pass }}"
+      - "POSTGRES_MULTIPLE_DATABASES=nextcloud:{{ postgres_nextcloud_pass }},\
+         tandoor:{{ postgres_tandoor_pass }},gitea:{{ postgres_gitea_pass }}"
     volumes:
       - "{{ appdata_path }}/postgresql/data:/var/lib/postgresql/data"
-      # Credit to mrts on Github - https://github.com/mrts/docker-postgresql-multiple-databases
-      # Forked here - https://github.com/coredotbin/docker-postgresql-multiple-databases
-      - "{{ appdata_path }}/postgresql/docker-postgresql-multiple-databases/create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh"
+      # Credit to mrts on Github
+      # https://github.com/mrts/docker-postgresql-multiple-databases
+      # Forked here
+      # https://github.com/coredotbin/docker-postgresql-multiple-databases
+      - "{{ appdata_path }}/postgresql/docker-postgresql-multiple-databases/\
+         create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/\
+         create-multiple-postgresql-databases.sh"
     restart: always
   - service_name: redis
     active: false
     image: bitnami/redis:latest
-    #labels:
-    #  - traefik.enable=true
-    #  - "traefik.http.routers.redis.rule=Host(`redis.{{ domain_name }}`)"
-    #  - traefik.http.services.redis.loadbalancer.server.port=6379
     environment:
       - "REDIS_PASSWORD={{ redis_password }}"
     volumes:
       - /var/run/redis.sock:/var/run/redis.sock:z
     restart: always
-  - service_name: authelia # TODO: Configure Authelia role
+  # TODO: Configure Authelia role
+  - service_name: authelia
     active: false
     image: authelia/authelia
     labels:
       - traefik.enable=true
       - "traefik.http.routers.authelia.rule=Host(`login.{{ domain_name }}`)"
       - traefik.http.services.authelia.loadbalancer.server.port=9091
-      - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://login.{{ domain_name }}/"
+      - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091\
+         /api/verify?rd=https://login.{{ domain_name }}/"
       - traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true
-      - traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email
+      - "traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=\
+         Remote-User,Remote-Groups,Remote-Name,Remote-Email"
     volumes:
       - "{{ appdata_path }}/authelia:{{ container_config_path }}"
     expose:
     depends_on:
       - redis
       - postgres
+    restart: unless-stopped
+  - service_name: hydroxide
+    active: true
+    image: ghcr.io/coredotbin/hydroxide-docker:master
+    command:
+      - "smtp"
+    volumes:
+      - "{{ appdata_path }}/hydroxide:/.config/hydroxide"
     restart: unless-stopped
   - service_name: homeassistant
     active: true
@@ -132,7 +137,6 @@ containers:
     restart: unless-stopped
   - service_name: unifi
     active: true
-    #image: lscr.io/linuxserver/unifi-controller:latest
     image: jacobalberty/unifi:latest
     ports:
       - 3478:3478
@@ -143,13 +147,13 @@ containers:
       - traefik.http.routers.unifi.tls=true
       - traefik.http.services.unifi.loadbalancer.server.port=8443
       - traefik.http.services.unifi.loadbalancer.server.scheme=https
-      - "traefik.http.routers.unifi-inform.rule=Host(`unifi.{{ domain_name }}`) && PathPrefix(`/inform`)"
+      - "traefik.http.routers.unifi-inform.rule=Host(`unifi.{{ domain_name }}`)\
+         && PathPrefix(`/inform`)"
       - traefik.http.routers.unifi-inform.entrypoints=unifi-inform
       - traefik.http.routers.unifi-inform.service=unifi-inform@docker
       - traefik.http.services.unifi-inform.loadbalancer.server.port=8080
       - traefik.http.services.unifi-inform.loadbalancer.server.scheme=http
     volumes:
-      #- "{{ appdata_path }}/unifi:/config"
       - "{{ appdata_path }}/unifi:/unifi"
     restart: unless-stopped
   - service_name: shinobi
@@ -163,7 +167,8 @@ containers:
       - /etc/localtime:/etc/localtime:ro
       - /dev/shm/shinobi/streams:/dev/shm/streams:rw
       - "{{ appdata_path }}/shinobi/config:/config:rw"
-      - "{{ appdata_path }}/shinobi/customAutoLoad:/home/Shinobi/libs/customAutoLoad:rw"
+      - "{{ appdata_path }}/shinobi/customAutoLoad:/home/Shinobi/libs/\
+         customAutoLoad:rw"
       - "{{ appdata_path }}/shinobi/database:/var/lib/mysql:rw"
       - "{{ appdata_path }}/shinobi/plugins:/home/Shinobi/plugins:rw"
       - "{{ media_path }}/recordings:/home/Shinobi/videos:rw"
@@ -194,7 +199,8 @@ containers:
     image: adolfintel/speedtest
     labels:
       - traefik.enable=true
-      - "traefik.http.routers.librespeed.rule=Host(`librespeed.{{ domain_name }}`)"
+      - "traefik.http.routers.librespeed.rule=\
+         Host(`librespeed.{{ domain_name }}`)"
       - traefik.http.services.librespeed.loadbalancer.server.port=80
     environment:
       - MODE=standalone
@@ -228,7 +234,8 @@ containers:
     image: ghcr.io/advplyr/audiobookshelf:latest
     labels:
       - traefik.enable=true
-      - "traefik.http.routers.audiobookshelf.rule=Host(`audiobookshelf.{{ domain_name }}`)"
+      - "traefik.http.routers.audiobookshelf.rule=\
+         Host(`audiobookshelf.{{ domain_name }}`)"
       - traefik.http.services.audiobookshelf.loadbalancer.server.port=80
     include_global_env_vars: true
     environment:
@@ -252,39 +259,6 @@ containers:
     volumes:
       - "{{ appdata_path }}/jellyfin:/config"
       - "{{ media_path }}:/media:z"
-    restart: unless-stopped
-  - service_name: transmission
-    active: false
-    image: haugene/transmission-openvpn
-    labels:
-      - traefik.enable=true
-      - "traefik.http.routers.transmission.rule=Host(`transmission.{{ domain_name }}`)"
-      - traefik.http.services.transmission.loadbalancer.server.port=9091
-    environment:
-      #- OPENVPN_PROVIDER=protonvpn
-      #- OPENVPN_CONFIG=node-ch-05.protonvpn.net.tcp
-      #- OPENVPN_CONFIG=switzerland
-      #- "OPENVPN_USERNAME={{ protonvpn_username }}"
-      #- "OPENVPN_PASSWORD={{ protonvpn_password }}"
-      - OPENVPN_PROVIDER=PIA
-      - OPENVPN_CONFIG=switzerland
-      - "OPENVPN_USERNAME={{ pia_username }}"
-      - "OPENVPN_PASSWORD={{ pia_password }}"
-      - LOCAL_NETWORK=10.0.0.0/16
-      - TRANSMISSION_HOME=/config
-      - TRANSMISSION_DOWNLOAD_DIR=/data
-      #- OPENVPN_OPTS="--inactive 3600 --ping 10 --ping-exit 60"
-      #- ENABLE_UFW=false
-    include_global_env_vars: true
-    volumes:
-      - "{{ appdata_path }}/transmission:/config"
-      - "{{ media_path }}/downloads:/data:z"
-    cap_add:
-      - NET_ADMIN
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
     restart: unless-stopped
   - service_name: sonarr
     active: true

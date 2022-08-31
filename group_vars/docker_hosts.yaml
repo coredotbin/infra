@@ -122,6 +122,43 @@ containers:
     volumes:
       - "{{ appdata_path }}/hydroxide:/.config/hydroxide"
     restart: unless-stopped
+  # TODO: Migrate Nextcloud database and configuration
+  - service_name: nextcloud
+    active: true
+    image: nextcloud:fpm
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.{{ domain_name }}`)"
+      - traefik.http.services.nextcloud.loadbalancer.server.port=80
+    depends_on:
+      - redis
+      - postgres
+      - hydroxide
+    volumes:
+      - "{{ appdata_path }}/nextcloud:/var/www/html"
+      - "{{ appdata_path }}/nextcloud/config:/var/www/html/config"
+      - "{{ media_path }}/nextcloud-data:/var/www/html/data"
+      - "{{ appdata_path }}/nextcloud/custom_apps:/var/www/html/custom_apps"
+      - "{{ appdata_path }}/nextcloud/themes:/var/www/html/themes"
+    environment:
+      - "NEXTCLOUD_ADMIN_USER={{ main_username }}"
+      - "NEXTCLOUD_ADMIN_PASS={{ nextcloud_admin_pass }}"
+      # PostgreSQL Configuration
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - "POSTGRES_PASSWORD={{ postgres_nextcloud_pass }}"
+      # Redis Configuration
+      - REDIS_HOST=redis
+      - "REDIS_HOST_PASSWORD={{ redis_password }}"
+      # SMTP Configuration
+      - SMTP_HOST=hydroxide
+      - SMTP_SECURE=tls
+      - SMTP_PORT=1025
+      - SMTP_AUTHTYPE=LOGIN
+      - "SMTP_NAME={{ admin_email_address }}"
+      - "SMTP_PASSWORD={{ hydroxide_password }}"
+    restart: unless-stopped
   - service_name: homeassistant
     active: true
     image: ghcr.io/home-assistant/home-assistant:stable

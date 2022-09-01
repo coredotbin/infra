@@ -1,3 +1,7 @@
 [submodule "files/docker-postgresql-multiple-databases"]
 	path = files/docker-postgresql-multiple-databases
 	url = https://github.com/coredotbin/docker-postgresql-multiple-databases
+[submodule "roles/docker_compose_generator"]
+	path = roles/docker_compose_generator
+	url = https://github.com/coredotbin/ansible-role-docker-compose-generator
+	branch = dev

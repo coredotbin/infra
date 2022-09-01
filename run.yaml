@@ -4,7 +4,7 @@
     - 'vars/vault.yaml'
   roles:
     - role: docker_host
-    - role: ironicbadger.docker_compose_generator
+    - role: docker_compose_generator
     - role: coredotbin.ansible_role_openssh
     - role: autorestic
     - role: grog.package

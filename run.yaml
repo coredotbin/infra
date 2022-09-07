@@ -6,6 +6,7 @@
     - role: docker_hosts
     - role: ironicbadger.docker_compose_generator
     - role: coredotbin.openssh
+    - role: docker_compose_generator
     - role: autorestic
     - role: grog.package
 

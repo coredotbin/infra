@@ -3,9 +3,9 @@
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    - role: docker_host
+    - role: docker_hosts
     - role: ironicbadger.docker_compose_generator
-    - role: coredotbin.ansible_role_openssh
+    - role: coredotbin.openssh
     - role: autorestic
     - role: grog.package
 
@@ -13,7 +13,7 @@
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    - role: coredotbin.ansible_role_openssh
+    - role: coredotbin.openssh
     - role: ktz-dhcp
     - role: grog.package
 
@@ -21,7 +21,7 @@
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    - role: coredotbin.ansible_role_openssh
+    - role: coredotbin.openssh
     - role: coredotbin.ansible_role_nextcloud
     - role: grog.package
 
@@ -29,13 +29,5 @@
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    - role: coredotbin.ansible_role_openssh
-    - role: grog.package
-
-- hosts: dev
-  vars_files:
-    - 'vars/vault.yaml'
-  roles:
-    - role: coredotbin.ansible_role_openssh
-    - role: ktz-dhcp
+    - role: coredotbin.openssh
     - role: grog.package

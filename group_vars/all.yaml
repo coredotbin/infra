@@ -2,10 +2,6 @@
 # generic settings
 main_username: corbin
 main_groupname: "{{ main_username }}"
-domain_name: cbarts.net
-
-appdata_path: /pool1/app-data
-media_path: /pool1/media
 
 # grog.package
 package_list:
@@ -22,10 +18,7 @@ package_list:
   - name: lm-sensors
   - name: ncdu
   - name: net-tools
-  - name: nmap
   - name: qemu-guest-agent
-  - name: certbot
-  - name: python3-certbot-dns-linode
 
 # ironicbadger.ansible_users
 groups_to_create:

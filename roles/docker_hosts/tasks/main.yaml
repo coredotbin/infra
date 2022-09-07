@@ -1,0 +1,21 @@
+---
+
+- name: Ensure prerequisite packages are installed
+  include_tasks: prereqs.yaml
+
+- name: Install apt repository
+  include_tasks: repo.yaml
+
+- name: Install the latest docker-ce packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-compose-plugin
+
+- name: Include PostgreSQL multiple databases patch
+  include_tasks: postgresql_multiple_dbs.yml

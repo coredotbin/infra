@@ -1,0 +1,12 @@
+---
+
+- name: Ensure prerequisite packages are installed
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - ca-certificates
+    - curl
+    - gnupg
+    - lsb-release

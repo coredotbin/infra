@@ -2,5 +2,6 @@
 roles:
   - ironicbadger.docker_compose_generator
   - coredotbin.openssh
+  - coredotbin.docker
   - coredotbin.ansible_role_nextcloud
   - grog.package

@@ -4,7 +4,7 @@
     - 'vars/vault.yaml'
   roles:
     - role: coredotbin.openssh
-    - role: docker_hosts
+    - role: coredotbin.docker
     - role: docker_compose_generator
     - role: autorestic
     - role: grog.package
@@ -13,7 +13,7 @@
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    - role: docker_hosts
+    - role: coredotbin.docker
     - role: docker_compose_generator
     - role: autorestic
 
@@ -21,7 +21,7 @@
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    - role: docker_hosts
+    - role: coredotbin.docker
     - role: docker_compose_generator
     - role: autorestic
 

@@ -46,9 +46,9 @@ containers:
     volumes:
       - "{{ appdata_path }}/mysql:/var/lib/mysql"
     environment:
-      - MYSQL_DATABASE=wordpress
-      - MYSQL_USER=wordpress
-      - "MYSQL_PASSWORD={{ mysql_password }}"
+      - "MYSQL_DATABASE={{ wordpress.mysql_database }}"
+      - "MYSQL_USER={{ wordpress.mysql_user }}"
+      - "MYSQL_PASSWORD={{ wordpress.mysql_password }}"
       - MYSQL_RANDOM_ROOT_PASSWORD=1
     restart: always
   - service_name: wordpress
@@ -63,9 +63,9 @@ containers:
       - "{{ appdata_path }}/wordpress:/var/www/html"
     environment:
       - WORDPRESS_DB_HOST=mysql
-      - WORDPRESS_DB_USER=wordpress
-      - "WORDPRESS_DB_PASSWORD={{ mysql_password }}"
-      - WORDPRESS_DB_NAME=wordpress
+      - "WORDPRESS_DB_NAME={{ wordpress.mysql_database }}"
+      - "WORDPRESS_DB_USER={{ wordpress.mysql_user }}"
+      - "WORDPRESS_DB_PASSWORD={{ wordpress.mysql_password }}"
     restart: unless-stopped
 
 autorestic_locations:

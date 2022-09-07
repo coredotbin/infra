@@ -4,12 +4,9 @@ all:
     cb-rt-01:
     hypervisor:
     pihole:
-    netbox:
-    hass:
     nextcloud:
     db:
     lin1:
-    lin2:
   children:
     ios:
       hosts:
@@ -36,6 +33,3 @@ all:
       hosts:
         pihole:
         nextcloud:
-    dev:
-      hosts:
-        lin2:

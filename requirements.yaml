@@ -1,9 +1,6 @@
 ---
-collections:
-  - community.general
-
 roles:
   - ironicbadger.docker_compose_generator
-  - coredotbin.ansible_role_openssh
+  - coredotbin.openssh
   - coredotbin.ansible_role_nextcloud
   - grog.package

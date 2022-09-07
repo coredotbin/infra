@@ -1,0 +1,74 @@
+---
+
+domain_name: kspier.net
+
+# ironicbadger.docker_compose_generator
+appdata_path: /var/appdata
+media_path: /var/media
+
+# Container definitions
+containers:
+  # Traefik
+  - service_name: traefik
+    active: true
+    image: traefik
+    network_mode: host
+    ports:
+      - 80
+      - 443
+    command:
+      - --api.dashboard=false
+
+      - --providers.docker
+      - --providers.docker.exposedByDefault=false
+      
+      # Entrypoints
+      - --entrypoints.http.address=:80
+      - --entrypoints.http.http.redirections.entryPoint.to=https
+      - --entrypoints.http.http.redirections.entryPoint.scheme=https
+
+      - --entrypoints.https.address=:443
+      - --entrypoints.https.http.tls.certresolver=linode
+
+      # Let's Encrypt certificates
+      - --certificatesResolvers.linode.acme.dnsChallenge.provider=linode
+      - "--certificatesResolvers.linode.acme.email={{ admin_email_address }}"
+      - --certificatesResolvers.linode.acme.storage=/etc/traefik/acme.json
+    environment:
+      - "LINODE_TOKEN={{ linode_dns_api_key }}"
+    volumes:
+      - "{{ appdata_path }}/traefik/config:/etc/traefik"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    restart: unless-stopped
+  - service_name: mysql
+    active: true
+    image: mysql:5.7
+    volumes:
+      - "{{ appdata_path }}/mysql:/var/lib/mysql"
+    environment:
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - "MYSQL_PASSWORD={{ mysql_password }}"
+      - MYSQL_RANDOM_ROOT_PASSWORD=1
+    restart: always
+  - service_name: wordpress
+    active: true
+    image: wordpress
+    labels:
+      - traefik.enable=true
+      - "treafik.http.routers.wordpress.rule=Host(`new.{{ domain_name }}`)"
+      - traefik.http.services.wordpress.loadbalancer.server.port=80
+    volumes:
+      - "{{ appdata_path }}/wordpress:/var/www/html"
+    environment:
+      - WORDPRESS_DB_HOST=mysql
+      - WORDPRESS_DB_USER=wordpress
+      - "WORDPRESS_DB_PASSWORD={{ mysql_password }}"
+      - WORDPRESS_DB_NAME=wordpress
+    restart: unless-stopped
+
+autorestic_locations:
+  - name: ks-lin-deb-use-01-app-data
+    from: "{{ appdata_path}}"
+    to:
+      - backblaze

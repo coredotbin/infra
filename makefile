@@ -1,5 +1,7 @@
 hypervisor:
 	ansible-playbook -b run.yaml --limit hypervisor
+ks-lin-deb-use-01:
+	ansible-playbook -b run.yaml --limit ks-lin-deb-use-01
 pihole:
 	ansible-playbook -b run.yaml --limit pihole
 nextcloud:

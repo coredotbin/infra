@@ -3,9 +3,9 @@ all:
   hosts:
     cb-rt-01:
     hypervisor:
+    ks-lin-deb-use-01:
     pihole:
     nextcloud:
-    db:
     lin1:
   children:
     ios:
@@ -14,22 +14,18 @@ all:
     debian:
       hosts:
         hypervisor:
+        ks-lin-deb-use-01:
         pihole:
         nextcloud:
-        db:
     docker_hosts:
       hosts:
         hypervisor:
+        ks-lin-deb-use-01:
     dhcp:
       hosts:
         pihole:
-    dbservers:
-      hosts:
-        db:
-    vpnservers:
-      hosts:
-        lin1:
     webservers:
       hosts:
         pihole:
         nextcloud:
+        ks-lin-deb-use-01:

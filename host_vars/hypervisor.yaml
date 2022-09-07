@@ -1,15 +1,5 @@
 ---
 
-autorestic_locations:
-  - name: nextcloud-data
-    from: "{{ media_path }}/nextcloud-data"
-    to:
-      - backblaze
-  - name: app-data
-    from: "{{ appdata_path}}"
-    to:
-      - backblaze
-
 domain_name: cbarts.net
 
 # ironicbadger.docker_compose_generator
@@ -181,7 +171,7 @@ containers:
       - GITEA__database__HOST=postgres:5432
       - GITEA__database__NAME=gitea
       - GITEA__database__USER=gitea
-      - "GITEA__database__PASS={{ postgres_gitea_pass }}"
+      - "GITEA__database__PASS={{ postgres.gitea_password }}"
     volumes:
       - "{{ appdata_path }}/gitea:/data"
       - /etc/timezone:/etc/timezone:ro
@@ -216,7 +206,7 @@ containers:
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=tandoor
-      - "POSTGRES_PASSWORD={{ postgres_pass }}"
+      - "POSTGRES_PASSWORD={{ postgres.tandoor_password }}"
       - POSTGRES_DB=tandoor
     volumes:
       - "{{ appdata_path }}/tandoor/staticfiles:/opt/recipes/staticfiles"
@@ -292,3 +282,13 @@ containers:
     volumes:
       - "{{ appdata_path }}/prowlarr:{{ container_config_path }}"
     restart: unless-stopped
+
+autorestic_locations:
+  - name: nextcloud-data
+    from: "{{ media_path }}/nextcloud-data"
+    to:
+      - backblaze
+  - name: hypervisor-app-data
+    from: "{{ appdata_path}}"
+    to:
+      - backblaze

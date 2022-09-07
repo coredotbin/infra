@@ -1,3 +1,5 @@
+docker_hosts:
+	ansible-playbook -b run.yaml --limit docker_hosts
 hypervisor:
 	ansible-playbook -b run.yaml --limit hypervisor
 ks-lin-deb-use-01:

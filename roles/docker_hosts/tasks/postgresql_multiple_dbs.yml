@@ -1,9 +1,0 @@
----
-- name: Copy script file for multiple PostgreSQL databases
-  ansible.builtin.copy:
-    src: "docker-postgresql-multiple-databases/\
-          create-multiple-postgresql-databases.sh"
-    dest: "{{ appdata_path }}/postgresql/\
-           docker-postgresql-multiple-databases/\
-           create-multiple-postgresql-databases.sh"
-    mode: 0755

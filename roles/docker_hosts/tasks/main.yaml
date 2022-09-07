@@ -16,6 +16,5 @@
     - docker-ce-cli
     - containerd.io
     - docker-compose-plugin
-
-- name: Include PostgreSQL multiple databases patch
-  include_tasks: postgresql_multiple_dbs.yml
+  notify:
+    - Restart Docker daemon

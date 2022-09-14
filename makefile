@@ -2,7 +2,7 @@ docker_hosts:
 	ansible-playbook -b run.yaml --limit docker_hosts
 hypervisor:
 	ansible-playbook -b run.yaml --limit hypervisor
-ks-lin-deb-use-01:
+cb-lin-deb-use-01:
 	ansible-playbook -b run.yaml --limit ks-lin-deb-use-01
 pihole:
 	ansible-playbook -b run.yaml --limit pihole

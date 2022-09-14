@@ -3,7 +3,7 @@ all:
   hosts:
     cb-rt-01:
     hypervisor:
-    ks-lin-deb-use-01:
+    cb-lin-deb-use-01:
     pihole:
     nextcloud:
     lin1:
@@ -14,13 +14,13 @@ all:
     debian:
       hosts:
         hypervisor:
-        ks-lin-deb-use-01:
+        cb-lin-deb-use-01:
         pihole:
         nextcloud:
     docker_hosts:
       hosts:
         hypervisor:
-        ks-lin-deb-use-01:
+        cb-lin-deb-use-01:
     dhcp:
       hosts:
         pihole:
@@ -28,4 +28,3 @@ all:
       hosts:
         pihole:
         nextcloud:
-        ks-lin-deb-use-01:

@@ -9,22 +9,6 @@
     - role: autorestic
     - role: grog.package
 
-- hosts: hypervisor
-  vars_files:
-    - 'vars/vault.yaml'
-  roles:
-    - role: coredotbin.docker
-    - role: docker_compose_generator
-    - role: autorestic
-
-- hosts: ks-lin-deb-use-01
-  vars_files:
-    - 'vars/vault.yaml'
-  roles:
-    - role: coredotbin.docker
-    - role: docker_compose_generator
-    - role: autorestic
-
 - hosts: pihole
   vars_files:
     - 'vars/vault.yaml'

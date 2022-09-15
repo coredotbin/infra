@@ -8,11 +8,13 @@ if [ -d .git/ ]; then
 rm .git/hooks/pre-commit
 cat <<EOT >> .git/hooks/pre-commit
 if ( git show :vars/vault.yaml | grep -q "\$ANSIBLE_VAULT;" ); then
-echo -e "\\e[38;5;108mVault Encrypted. Safe to commit.\\e[0m"
+echo "\\e[38;5;108mVault Encrypted. Safe to commit.\\e[0m"
 else
-echo -e "\\e[38;5;208mVault not encrypted! Run 'make encrypt' and try again.\\e[0m"
+echo "\\e[38;5;208mVault not encrypted! Run 'make encrypt' and try again.\\e[0m"
 exit 1
 fi
+command -v yamllint > /dev/null && echo "Running yamllint..." && yamllint .
+command -v ansible-lint > /dev/null && echo "Running ansible-lint..." ansible-lint
 EOT
 
 fi

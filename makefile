@@ -1,3 +1,5 @@
+all:
+	ansible-playbook -b run.yaml
 docker_hosts:
 	ansible-playbook -b run.yaml --limit docker_hosts
 hypervisor:
@@ -10,7 +12,8 @@ nextcloud:
 	ansible-playbook -b run.yaml --limit nextcloud
 
 lint:
-	yamllint -c .yamllint .
+	-yamllint .
+	ansible-lint
 
 reqs:
 	ansible-galaxy install -r requirements.yaml

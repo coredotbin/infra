@@ -14,7 +14,7 @@
     - 'vars/vault.yaml'
   roles:
     - role: coredotbin.openssh
-    - role: ktz-dhcp
+    - role: dhcp
     - role: grog.package
 
 - hosts: nextcloud

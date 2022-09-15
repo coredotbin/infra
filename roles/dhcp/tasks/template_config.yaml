@@ -1,0 +1,18 @@
+---
+
+- name: ensure destination for dhcp file exists
+  ansible.builtin.file:
+    path: "{{ dhcpd_conf_location }}"
+    mode: '0755'
+    state: directory
+
+- name: Write dhcpd file
+  ansible.builtin.template:
+    src: templates/dhcpd.conf.j2
+    dest: "{{ dhcpd_conf_location }}/dhcpd.conf"
+    mode: '0644'
+  become: true
+  register: dhcpd_file
+  notify:
+    - Restart service
+    - Revoke existing leases

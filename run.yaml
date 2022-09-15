@@ -7,7 +7,6 @@
     - role: coredotbin.docker
     - role: docker_compose_generator
     - role: autorestic
-    - role: grog.package
 
 - hosts: pihole
   vars_files:
@@ -15,7 +14,6 @@
   roles:
     - role: coredotbin.openssh
     - role: dhcp
-    - role: grog.package
 
 - hosts: nextcloud
   vars_files:
@@ -23,4 +21,3 @@
   roles:
     - role: coredotbin.openssh
     - role: coredotbin.ansible_role_nextcloud
-    - role: grog.package

@@ -3,42 +3,10 @@
 main_username: corbin
 main_groupname: "{{ main_username }}"
 
-# grog.package
-package_list:
-  - name: sudo
-  - name: openssh-server
-  - name: bash-completion
-  - name: tmux
-  - name: wget
-  - name: curl
-  - name: git
-  - name: htop
-  - name: iftop
-  - name: iotop
-  - name: lm-sensors
-  - name: ncdu
-  - name: net-tools
-  - name: qemu-guest-agent
-
-# ironicbadger.ansible_users
-groups_to_create:
-  - name: "{{ main_groupname }}"
-  - name: nftables
-
-users:
-  - username: "{{ main_username }}"
-    name: "{{ main_username }}"
-    groups: ['sudo', 'ssh', 'nftables', 'docker']
-    github_username: coredotbin
-    update_password: on_create
-    ssh_key:
-      - "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAA\
-         ACFBAF8fJrqzWC3WGwqhKQpqM+IR/b433HFGdyWgirmcmY5sV/dOcpuFUC5a00WOq1+AV\
-         tA6rAhWFrijL2ubIaca9qvbwAVB7kt9MkbqaY6xGbyT/m17ycQ+lITvpSiTrM1oJ0kJTH\
-         KoyH2+C+DevjQS1UQjX3AmnXxq3mohmYRtuyet84Xig== corbin@emerald"
+domain_name: cbarts.net
 
 # influxdb
-influxdb_ip: 192.168.1.10
+influxdb_ip: ''
 influxdb_port: 8086
 
 ## telegraf

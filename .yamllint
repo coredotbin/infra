@@ -1,0 +1,7 @@
+---
+
+ignore: |
+  vars/vault.yaml
+  roles/docker_compose_generator
+
+# vi: ft=yaml

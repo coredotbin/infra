@@ -3,4 +3,8 @@
 exclude_paths:
   - .cache/
   - .github/
-  - playbooks/test_jinja2_templates.yaml
+
+warn_list:
+  - '106' # Role name {} does not match ``^[a-z][a-z0-9_]+$`` pattern
+
+# vi: ft=yaml

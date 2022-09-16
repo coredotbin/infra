@@ -1,7 +1,5 @@
 ---
 
-domain_name: kspier.net
-
 # ironicbadger.docker_compose_generator
 appdata_path: /var/appdata
 media_path: /var/media
@@ -21,7 +19,7 @@ containers:
 
       - --providers.docker
       - --providers.docker.exposedByDefault=false
-      
+
       # Entrypoints
       - --entrypoints.http.address=:80
       - --entrypoints.http.http.redirections.entryPoint.to=https
@@ -51,13 +49,14 @@ containers:
       - "MYSQL_PASSWORD={{ wordpress.mysql_password }}"
       - MYSQL_RANDOM_ROOT_PASSWORD=1
     restart: always
+  # Wordpress - https://hub.docker.com/_/wordpress
   - service_name: wordpress
     active: true
     image: wordpress
     labels:
       - traefik.enable=true
       - "traefik.http.routers.wordpress.rule=\
-         (Host(`{{ domain_name }}`) || Host(`www.{{ domain_name }}`))"
+         (Host(`kspier.net`) || Host(`www.kspier.net`))"
       - traefik.http.services.wordpress.loadbalancer.server.port=80
     volumes:
       - "{{ appdata_path }}/wordpress:/var/www/html"
@@ -69,7 +68,7 @@ containers:
     restart: unless-stopped
 
 autorestic_locations:
-  - name: ks-lin-deb-use-01-app-data
+  - name: cb-lin-deb-use-01-app-data
     from: "{{ appdata_path}}"
     to:
       - backblaze

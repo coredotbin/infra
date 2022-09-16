@@ -1,5 +1,5 @@
 # {{ ansible_managed }}
-## Template borrowed from ironicbadger (https://github.com/ironicbadger/infra/blob/master/roles/ktz-autorestic/templates/autorestic.yml.j2)
+{# Template borrowed from ironicbadger (https://github.com/ironicbadger/infra/blob/master/roles/ktz-autorestic/templates/autorestic.yml.j2) #}
 version: {{ autorestic_version }}
 
 locations:
@@ -17,7 +17,7 @@ backends:
   {{ backend.name }}:
     type: {{ backend.type }}
     path: '{{ backend.path }}'
-	key: {{ backend.key }}
+    key: {{ backend.key }}
     env:
 {% for envvar in backend.env %}
       {{ envvar }}

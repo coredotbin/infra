@@ -1,2 +1,9 @@
 ---
 
+- name: Create cron job
+  ansible.builtin.cron:
+    name: Run autorestic backups
+    special_time: weekly
+    job: autorestic backup -c /etc/autorestic/autorestic.yaml -a
+    cron_file: ansible-autorestic
+    backup: true

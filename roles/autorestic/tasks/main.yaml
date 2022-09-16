@@ -4,8 +4,5 @@
     name: restic
     state: present
 
-#- name: Install autorestic
-#  include_tasks: install.yaml
-
 - name: Configure autorestic
   include_tasks: configure.yaml

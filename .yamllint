@@ -1,6 +1,9 @@
 ---
 
+extends: default
+
 ignore: |
+  .github/
   vars/vault.yaml
   roles/docker_compose_generator
 

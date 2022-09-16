@@ -1,7 +1,5 @@
 ---
 
-domain_name: cbarts.net
-
 # ironicbadger.docker_compose_generator
 appdata_path: /pool1/app-data
 media_path: /pool1/media
@@ -59,8 +57,10 @@ containers:
     environment:
       - "POSTGRES_USER={{ main_username }}"
       - "POSTGRES_PASSWORD={{ postgres.password }}"
-      - "POSTGRES_MULTIPLE_DATABASES=nextcloud:{{ postgres.nextcloud_password }},\
-         tandoor:{{ postgres.tandoor_password }},gitea:{{ postgres.gitea_password }}"
+      - "POSTGRES_MULTIPLE_DATABASES=\
+         nextcloud:{{ postgres.nextcloud_password }},\
+         tandoor:{{ postgres.tandoor_password }},\
+         gitea:{{ postgres.gitea_password }}"
     volumes:
       - "{{ appdata_path }}/postgresql/data:/var/lib/postgresql/data"
       # Credit to mrts on Github
@@ -215,7 +215,7 @@ containers:
       - postgres
     restart: unless-stopped
   - service_name: audiobookshelf
-    active: ture
+    active: false
     image: ghcr.io/advplyr/audiobookshelf:latest
     labels:
       - traefik.enable=true

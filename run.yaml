@@ -20,4 +20,4 @@
     - 'vars/vault.yaml'
   roles:
     - role: coredotbin.openssh
-    - role: coredotbin.ansible_role_nextcloud
+    - role: coredotbin.nextcloud

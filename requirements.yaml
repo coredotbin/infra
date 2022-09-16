@@ -1,6 +1,0 @@
----
-roles:
-  - ironicbadger.docker_compose_generator
-  - coredotbin.openssh
-  - coredotbin.docker
-  - coredotbin.nextcloud

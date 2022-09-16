@@ -16,9 +16,9 @@ lint:
 	ansible-lint
 
 reqs:
-	ansible-galaxy install -r requirements.yaml
+	ansible-galaxy install -r roles/requirements.yaml
 forcereqs:
-	ansible-galaxy install -r requirements.yaml --force
+	ansible-galaxy install -r roles/requirements.yaml --force
 
 encrypt:
 	ansible-vault encrypt vars/vault.yaml

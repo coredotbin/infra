@@ -1,0 +1,10 @@
+---
+
+roles:
+  - name: docker_compose_generator
+    scm: git
+    src: https://github.com/coredotbin/ansible-role-docker-compose-generator
+    version: dev
+  - coredotbin.openssh
+  - coredotbin.docker
+  - coredotbin.nextcloud

@@ -1,0 +1,17 @@
+---
+- name: Localhost setup
+  hosts: 127.0.0.1
+  tasks:
+    - name: Install packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - yamllint
+        - ansible-lint
+
+    - name: Set up git pre-commit hooks
+      ansible.builtin.copy:
+        src: ../files/pre-commit
+        dest: ../.git/hooks/pre-commit
+        mode: 0755

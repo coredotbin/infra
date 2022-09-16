@@ -1,0 +1,16 @@
+# Pre-commit hook to ensure vault.yaml is encrypted
+#
+# Credit goes to Nick Busey from HomelabOS for this neat little trick
+# https://gitlab.com/NickBusey/HomelabOS/-/issues/355
+
+if ( git show :vars/vault.yaml | grep -q "$ANSIBLE_VAULT;" ); then
+echo "\e[38;5;108mVault Encrypted. Safe to commit.\e[0m"
+else
+echo "\e[38;5;208mVault not encrypted! Run 'make encrypt' and try again.\e[0m"
+exit 1
+fi
+
+command -v yamllint > /dev/null && echo "Running yamllint..." && yamllint .
+command -v ansible-lint > /dev/null && echo "Running ansible-lint..." ansible-lint
+
+# vi: ft=sh

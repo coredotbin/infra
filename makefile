@@ -15,6 +15,10 @@ lint:
 	-yamllint .
 	ansible-lint
 
+setup:
+	ansible-playbook -b playbooks/localhost_setup.yaml --ask-become-pass
+	make reqs
+
 reqs:
 	ansible-galaxy install -r roles/requirements.yaml
 forcereqs:

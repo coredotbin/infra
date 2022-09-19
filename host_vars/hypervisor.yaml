@@ -4,6 +4,8 @@
 appdata_path: /pool1/app-data
 media_path: /pool1/media
 
+graylog_active: true
+
 # Container definitions
 containers:
   - service_name: traefik
@@ -157,6 +159,61 @@ containers:
       - "{{ appdata_path }}/shinobi/database:/var/lib/mysql:rw"
       - "{{ appdata_path }}/shinobi/plugins:/home/Shinobi/plugins:rw"
       - "{{ media_path }}/recordings:/home/Shinobi/videos:rw"
+    restart: unless-stopped
+  # MongoDB - https://hub.docker.com/_/mongo/
+  - service_name: mongo
+    active: "{{ graylog_active }}"
+    image: mongo:4.2
+    volumes:
+      - "{{ appdata_path }}/mongodb:/data/db"
+    restart: unless-stopped
+    # Elastic Search
+    # https://www.elastic.co/guide/en/elasticsearch/reference/7.10/docker.html
+  - service_name: elasticsearch
+    active: "{{ graylog_active }}"
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    volumes:
+      - "{{ appdata_path }}/elasticsearch:/usr/share/elasticsearch/data"
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=localhost
+      - network.host=0.0.0.0
+      - node.max_local_storage_nodes=4
+      # Memory allocation for Java
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    restart: unless-stopped
+  # Graylog - https://hub.docker.com/r/graylog/graylog/
+  - service_name: graylog
+    active: "{{ graylog_active }}"
+    image: graylog/graylog:4.2
+    entrypoint: "/usr/bin/tini -- wait-for-it elasticsearch:9200 \
+                 --  /docker-entrypoint.sh"
+    labels:
+      # Traefik enable
+      - traefik.enable=true
+
+      # Graylog web interface and REST API
+      - "traefik.http.routers.graylog.rule=Host(`graylog.{{ domain_name }}`)"
+      - traefik.http.routers.graylog_web.service=graylog_web@docker
+      - traefik.http.services.graylog_web.loadbalancer.server.port=9000
+
+      # Syslog TCP
+      - "traefik.tcp.routers.graylog.rule=Host(`graylog.{{ domain_name }}`)"
+      - traefik.tcp.routers.graylog_tcp.service=graylog_tcp@docker
+      - traefik.tcp.service.graylog_tcp.loadbalancer.server.port=1514
+
+      # Syslog UDP
+      - "traefik.udp.routers.graylog.rule=Host(`graylog.{{ domain_name }}`)"
+      - traefik.udp.routers.graylog_udp.service=graylog_udp@docker
+      - traefik.udp.service.graylog_udp.loadbalancer.server.port=1514
+    volumes:
+      - "{{ appdata_path }}/graylog:/usr/share/graylog/data"
+    environment:
+      - "GRAYLOG_ROOT_PASSWORD_SHA2={{ graylog_root_password_sha2 }}"
+      - "GRAYLOG_HTTP_EXTERNAL_URI=https://graylog.{{ domain_name }}/"
+    depends_on:
+      - mongo
+      - elasticsearch
     restart: unless-stopped
   - service_name: gitea
     active: true

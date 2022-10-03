@@ -29,9 +29,9 @@ echo "\e[38;5;208mVault not encrypted! Run 'make encrypt' and try again.\e[0m"
 exit 1
 fi
 echo Running yamllint...
-hash yamllint > /dev/null 2>&1; if [ \$\$ -ne 0 ]; then yamllint . || exit 0; fi
+hash yamllint > /dev/null 2>&1; if [ \$\$ -ne 0 ]; then yamllint . || exit 1; fi
 echo Running ansible-lint...
-hash ansible-lint > /dev/null 2>&1; if [ \$\$ -ne 0 ]; then ansible-lint || exit 0; fi
+hash ansible-lint > /dev/null 2>&1; if [ \$\$ -ne 0 ]; then ansible-lint || exit 1; fi
 EOT
 chmod +x .git/hooks/pre-commit
 fi

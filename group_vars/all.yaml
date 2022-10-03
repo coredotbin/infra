@@ -5,6 +5,17 @@ main_groupname: "{{ main_username }}"
 
 domain_name: cbarts.net
 
+# ironicbadger.bash-aliases (formerly ferrarimarco.bash-aliases)
+bash_aliases:
+  - {alias: "cp", command: "cp -v"}
+  - {alias: "mv", command: "mv -vi"}
+  - {alias: "rm", command: "rm -I"}
+  - {alias: "ls", command: "ls --color=auto"}
+  - {alias: "ll", command: "ls -lh --color=auto"}
+  - {alias: "la", command: "ls -lah --color=auto"}
+  - {alias: "dup", command: "docker compose up -d"}
+  - {alias: "dstop", command: "docker compose stop"}
+
 # influxdb
 influxdb_ip: ''
 influxdb_port: 8086

@@ -4,6 +4,7 @@
     - 'vars/vault.yaml'
   roles:
     - role: coredotbin.openssh
+    - role: ironicbadger.bash_aliases
     - role: coredotbin.docker
     - role: docker_compose_generator
     - role: autorestic
@@ -13,6 +14,7 @@
     - 'vars/vault.yaml'
   roles:
     - role: coredotbin.openssh
+    - role: ironicbadger.bash_aliases
     - role: dhcp
 
 - hosts: database
@@ -20,10 +22,12 @@
     - 'vars/vault.yaml'
   roles:
     - role: coredotbin.openssh
+    - role: ironicbadger.bash_aliases
 
 - hosts: nextcloud
   vars_files:
     - 'vars/vault.yaml'
   roles:
     - role: coredotbin.openssh
+    - role: ironicbadger.bash_aliases
     - role: coredotbin.nextcloud

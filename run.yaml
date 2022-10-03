@@ -15,6 +15,12 @@
     - role: coredotbin.openssh
     - role: dhcp
 
+- hosts: database
+  vars_files:
+    - 'vars/vault.yaml'
+  roles:
+    - role: coredotbin.openssh
+
 - hosts: nextcloud
   vars_files:
     - 'vars/vault.yaml'

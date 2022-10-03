@@ -24,6 +24,9 @@ all:
     dhcp:
       hosts:
         pihole:
+    database:
+      hosts:
+        pgsql:
     webservers:
       hosts:
         pihole:

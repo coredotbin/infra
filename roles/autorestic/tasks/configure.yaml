@@ -3,10 +3,12 @@
   ansible.builtin.file:
     path: "{{ autorestic_config_path }}"
     state: directory
+    mode: 0755
 
 - name: Write autorestic config file
   ansible.builtin.template:
     src: autorestic.yaml.j2
     dest: "{{ autorestic_config_path }}/autorestic.yaml"
+    mode: 0644
     # Will back up the previously running autorestic configuration
     backup: true

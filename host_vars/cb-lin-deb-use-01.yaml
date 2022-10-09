@@ -67,6 +67,40 @@ containers:
       - "WORDPRESS_DB_PASSWORD={{ wordpress.mysql_password }}"
     restart: unless-stopped
 
+  # PostgreSQL
+  - service_name: postgres
+    active: true
+    image: postgres:14
+    environment:
+      - POSTGRES_DATABASE=gitea
+      - POSTGRES_USER=gitea
+      - "POSTGRES_PASSWORD={{ postgres.gitea_password }}"
+    volumes:
+      - "{{ appdata_path }}/postgresql/data:/var/lib/postgresql/data"
+    restart: unless-stopped
+  # Gitea
+  - service_name: gitea
+    active: true
+    image: gitea/gitea:1.16.9
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.gitea.rule=Host(`git.{{ domain_name }}`)"
+      - traefik.http.services.gitea.loadbalancer.server.port=3000
+    include_global_env_vars: true
+    environment:
+      - GITEA__database__DB_TYPE=postgres
+      - GITEA__database__HOST=postgres:5432
+      - GITEA__database__NAME=gitea
+      - GITEA__database__USER=gitea
+      - "GITEA__database__PASS={{ postgres.gitea_password }}"
+    volumes:
+      - "{{ appdata_path }}/gitea:/data"
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
 autorestic_locations:
   - name: cb-lin-deb-use-01-app-data
     from: "{{ appdata_path}}"

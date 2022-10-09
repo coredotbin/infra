@@ -59,8 +59,7 @@ containers:
       - "POSTGRES_PASSWORD={{ postgres.password }}"
       - "POSTGRES_MULTIPLE_DATABASES=\
          nextcloud:{{ postgres.nextcloud_password }},\
-         tandoor:{{ postgres.tandoor_password }},\
-         gitea:{{ postgres.gitea_password }}"
+         tandoor:{{ postgres.tandoor_password }}"
     volumes:
       - "{{ appdata_path }}/postgresql/data:/var/lib/postgresql/data"
       # Credit to mrts on Github
@@ -157,27 +156,6 @@ containers:
       - "{{ appdata_path }}/shinobi/database:/var/lib/mysql:rw"
       - "{{ appdata_path }}/shinobi/plugins:/home/Shinobi/plugins:rw"
       - "{{ media_path }}/recordings:/home/Shinobi/videos:rw"
-    restart: unless-stopped
-  - service_name: gitea
-    active: true
-    image: gitea/gitea:1.16.9
-    labels:
-      - traefik.enable=true
-      - "traefik.http.routers.gitea.rule=Host(`git.{{ domain_name }}`)"
-      - traefik.http.services.gitea.loadbalancer.server.port=3000
-    include_global_env_vars: true
-    environment:
-      - GITEA__database__DB_TYPE=postgres
-      - GITEA__database__HOST=postgres:5432
-      - GITEA__database__NAME=gitea
-      - GITEA__database__USER=gitea
-      - "GITEA__database__PASS={{ postgres.gitea_password }}"
-    volumes:
-      - "{{ appdata_path }}/gitea:/data"
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    depends_on:
-      - postgres
     restart: unless-stopped
   - service_name: librespeed
     active: true

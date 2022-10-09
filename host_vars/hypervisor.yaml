@@ -246,7 +246,7 @@ containers:
       - "{{ media_path }}:/media:z"
     restart: unless-stopped
   - service_name: sonarr
-    active: false
+    active: true
     image: linuxserver/sonarr
     labels:
       - traefik.enable=true
@@ -259,7 +259,7 @@ containers:
       - "{{ media_path }}/downloads/tv:/downloads:z"
     restart: unless-stopped
   - service_name: radarr
-    active: false
+    active: true
     image: linuxserver/radarr
     labels:
       - traefik.enable=true
@@ -272,7 +272,7 @@ containers:
       - "{{ media_path }}/downloads/movies:/downloads:z"
     restart: unless-stopped
   - service_name: prowlarr
-    active: false
+    active: true
     image: linuxserver/prowlarr:develop
     labels:
       - traefik.enable=true

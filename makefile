@@ -80,4 +80,4 @@ endif
 
 .PHONY: run
 run: lint ## Run Ansible
-	ansible-playbook -b run.yaml --limit $(RUN_ARGS)
+	ansible-playbook -b run.yaml $(RUN_ARGS)

@@ -3,10 +3,11 @@ all:
   hosts:
     cb-rt-01:
     hypervisor:
+    cb-lin-deb-ca-01:
     cb-lin-deb-use-01:
     pihole:
+    pgsql:
     nextcloud:
-    lin1:
   children:
     ios:
       hosts:
@@ -14,8 +15,10 @@ all:
     debian:
       hosts:
         hypervisor:
+        cb-lin-deb-ca-01:
         cb-lin-deb-use-01:
         pihole:
+        pgsql:
         nextcloud:
     docker_hosts:
       hosts:

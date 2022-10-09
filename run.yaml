@@ -20,8 +20,8 @@
   roles:
     - role: dhcp
 
-- hosts: nextcloud
-  vars_files:
-    - 'vars/vault.yaml'
-  roles:
-    - role: coredotbin.nextcloud
+# - hosts: nextcloud
+#   vars_files:
+#     - 'vars/vault.yaml'
+#   roles:
+#     - role: coredotbin.nextcloud

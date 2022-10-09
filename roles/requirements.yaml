@@ -7,5 +7,4 @@ roles:
     version: dev
   - coredotbin.openssh
   - coredotbin.docker
-  - coredotbin.nextcloud
   - ironicbadger.bash_aliases

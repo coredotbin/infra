@@ -6,14 +6,15 @@ media_path: /var/media
 
 # Container definitions
 containers:
-  # Traefik
   - service_name: traefik
     active: true
     image: traefik
     network_mode: host
     ports:
-      - 80
-      - 443
+      # http
+      - 80:80
+      # https
+      - 443:443
     command:
       - --api.dashboard=false
 
@@ -70,7 +71,7 @@ containers:
   # PostgreSQL
   - service_name: postgres
     active: true
-    image: postgres:14
+    image: postgres:15
     environment:
       - POSTGRES_DATABASE=gitea
       - POSTGRES_USER=gitea

@@ -1,0 +1,8 @@
+---
+
+nextcloud_apache2_virtualhost: true
+nextcloud_nginx: false
+nextcloud_ssl_certificate_path: "/etc/letsencrypt/live/\
+                                 nextcloud.cbarts.net/cert.pem"
+nextcloud_ssl_key_path: "/etc/letsencrypt/live/\
+                         nextcloud.cbarts.net/privkey.pem"

@@ -53,7 +53,7 @@ containers:
     restart: unless-stopped
   - service_name: postgres
     active: true
-    image: postgres:14
+    image: postgres:15
     environment:
       - "POSTGRES_USER={{ main_username }}"
       - "POSTGRES_PASSWORD={{ postgres.password }}"
@@ -126,11 +126,13 @@ containers:
       - 3478:3478
     labels:
       - traefik.enable=true
+      # Web interface
       - "traefik.http.routers.unifi.rule=Host(`unifi.{{ domain_name }}`)"
       - traefik.http.routers.unifi.service=unifi@docker
       - traefik.http.routers.unifi.tls=true
       - traefik.http.services.unifi.loadbalancer.server.port=8443
       - traefik.http.services.unifi.loadbalancer.server.scheme=https
+      # Inform URL
       - "traefik.http.routers.unifi-inform.rule=Host(`unifi.{{ domain_name }}`)\
          && PathPrefix(`/inform`)"
       - traefik.http.routers.unifi-inform.entrypoints=unifi-inform

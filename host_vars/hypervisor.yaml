@@ -40,6 +40,12 @@ containers:
       - --certificatesResolvers.linode.acme.storage=/etc/traefik/acme.json
 
       - --serversTransport.insecureSkipVerify=true
+
+      # Metrics
+      - --metrics.influxdb2.address=http://influxdb:8086
+      - "--metrics.influxdb2.token={{ influxdb.traefik_token }}"
+      - "--metrics.influxdb2.org={{ influxdb.org }}"
+      - "--metrics.influxdb2.bucket={{ influxdb.bucket }}"
     environment:
       - "LINODE_TOKEN={{ linode_dns_api_key }}"
     volumes:
@@ -50,10 +56,12 @@ containers:
       - treafik.http.routers.api.entrypoints=http
       - "traefik.http.routers.api.rule=Host(`traefik.{{ domain_name }}`)"
       - traefik.http.routers.api.service=api@internal
+    depends_on:
+      - influxdb
     restart: unless-stopped
   - service_name: postgres
     active: true
-    image: postgres:15
+    image: postgres:14
     environment:
       - "POSTGRES_USER={{ main_username }}"
       - "POSTGRES_PASSWORD={{ postgres.password }}"
@@ -70,6 +78,16 @@ containers:
          create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/\
          create-multiple-postgresql-databases.sh"
     restart: always
+  - service_name: influxdb
+    active: true
+    image: influxdb:2.0
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.influxdb.rule=Host(`influxdb.{{ domain_name }}`)"
+      - traefik.http.services.influxdb.loadbalancer.server.port=8086
+    volumes:
+      - "{{ appdata_path }}/influxdb/influxdb2:/var/lib/influxdb2"
+    restart: unless-stopped
   - service_name: redis
     active: false
     image: bitnami/redis:latest
@@ -78,6 +96,38 @@ containers:
     volumes:
       - /var/run/redis.sock:/var/run/redis.sock:z
     restart: always
+  # Telegraf - https://registry.hub.docker.com/_/telegraf/
+  # https://github.com/influxdata/telegraf/blob/master/docs/CONFIGURATION.md
+  # https://github.com/influxdata/telegraf/tree/master/plugins/inputs/docker
+  - service_name: telegraf
+    active: true
+    image: telegraf
+    # The Telegraf Docker images now run the telegraf process as the telegraf
+    # user/group and no longer as the root user.
+    # Get the GID of the docker sock with `stat -c '%g' /var/run/docker.sock`
+    user: telegraf:112
+    command:
+      - "--config=http://influxdb:8086/api/v2/telegrafs/0a4dacd337cbf000"
+    volumes:
+      # Give the container read-only access to the host root fs
+      - /:/hostfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      # Configure connection to influxDB2
+      - INFLUX_HOST=http://influxdb:8086
+      - "INFLUX_TOKEN={{ influxdb.hypervisor_token }}"
+      - "INFLUX_ORG={{ influxdb.org }}"
+      - "INFLUX_BUCKET={{ influxdb.bucket }}"
+      # Map the host fs
+      - HOST_MOUNT_PREFIX=/hostfs
+      - HOST_ETC=/hostfs/etc
+      - HOST_PROC=/hostfs/proc
+      - HOST_SYS=/hostfs/sys
+      - HOST_VAR=/hostfs/var
+      - HOST_RUN=/hostfs/run
+    depends_on:
+      - influxdb
+    restart: unless-stopped
   # TODO: Configure Authelia role
   - service_name: authelia
     active: false
@@ -105,6 +155,16 @@ containers:
       - "smtp"
     volumes:
       - "{{ appdata_path }}/hydroxide:/.config/hydroxide"
+    restart: unless-stopped
+  - service_name: grafana
+    active: true
+    image: grafana/grafana-oss
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.grafana.rule=Host(`grafana.{{ domain_name }}`)"
+      - traefik.http.services.grafana.loadbalancer.server.port=3000
+    depends_on:
+      - influxdb
     restart: unless-stopped
   - service_name: homeassistant
     active: true

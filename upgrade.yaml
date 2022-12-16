@@ -1,0 +1,10 @@
+---
+- hosts: all
+  vars_files:
+    - 'vars/vault.yaml'
+  tasks:
+    - name: Update and Upgrade apt packages
+      ansible.builtin.apt:
+        upgrade: true
+        update_cache: true
+        cache_valid_time: 86400

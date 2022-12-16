@@ -81,3 +81,7 @@ endif
 .PHONY: run
 run: lint ## Run Ansible
 	ansible-playbook -b run.yaml $(RUN_ARGS)
+
+.PHONY: upgrade
+upgrade: ## Update and Upgrade apt packages
+	ansible-playbook -b upgrade.yaml

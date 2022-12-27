@@ -333,6 +333,6 @@ autorestic_locations:
     to:
       - backblaze
   - name: hypervisor-app-data
-    from: "{{ appdata_path}}"
+    from: "{{ appdata_path }}"
     to:
       - backblaze

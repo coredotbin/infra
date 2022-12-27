@@ -104,6 +104,6 @@ containers:
 
 autorestic_locations:
   - name: cb-lin-deb-use-01-app-data
-    from: "{{ appdata_path}}"
+    from: "{{ appdata_path }}"
     to:
       - backblaze

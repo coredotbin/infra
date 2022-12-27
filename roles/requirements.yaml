@@ -1,5 +1,4 @@
 ---
-
 roles:
   - name: docker_compose_generator
     scm: git
@@ -8,3 +7,4 @@ roles:
   - coredotbin.openssh
   - coredotbin.docker
   - ironicbadger.bash_aliases
+  - oefenweb.fail2ban

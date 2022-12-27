@@ -4,6 +4,7 @@
     - 'vars/vault.yaml'
   roles:
     - role: coredotbin.openssh
+    - role: oefenweb.fail2ban
     - role: ironicbadger.bash_aliases
 
 - hosts: docker_hosts

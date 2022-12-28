@@ -5,4 +5,4 @@
     state: present
 
 - name: Configure autorestic
-  include_tasks: configure.yaml
+  ansible.builtin.include_tasks: configure.yaml

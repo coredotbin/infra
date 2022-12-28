@@ -1,19 +1,19 @@
 ---
 - name: Create a list of all MAC addresses
   ansible.builtin.set_fact:
-    list_macs: "{{ list_macs|default([]) }} + [ '{{ item.mac }}' ]"
+    list_macs: "{{ list_macs | default([]) }} + [ '{{ item.mac }}' ]"
   loop:
     "{{ reservations }}"
 
 - name: Find duplicate MAC addresses
   ansible.builtin.set_fact:
-    list_duplicates: "{{ list_duplicates|default([]) + [item] }}"
-  loop: "{{ list_macs|sort }}"
+    list_duplicates: "{{ list_duplicates | default([]) + [item] }}"
+  loop: "{{ list_macs | sort }}"
   loop_control:
     extended: true
-  when: item == ansible_loop.nextitem|default('')
+  when: item == ansible_loop.nextitem | default('')
 
 - name: Fail if a duplicate MAC address is found
   ansible.builtin.fail:
-    msg: Duplicate MACs found! {{ list_duplicates|unique }}
-  when: "list_macs|unique != list_macs"
+    msg: Duplicate MACs found! {{ list_duplicates | unique }}
+  when: "list_macs | unique != list_macs"

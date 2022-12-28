@@ -1,12 +1,12 @@
 ---
 
-- name: Check for duplicate MAC addresses
-  include_tasks: duplicate_macs.yaml
+# - name: Check for duplicate MAC addresses
+#   ansible.builtin.include_tasks: duplicate_macs.yaml
 
-- name: ensure dhcpd package is installed
+- name: Ensure dhcpd package is installed
   ansible.builtin.package:
     name: isc-dhcp-server
     state: present
 
 - name: Create DHCPD config file
-  include_tasks: template_config.yaml
+  ansible.builtin.include_tasks: template_config.yaml

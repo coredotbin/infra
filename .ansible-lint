@@ -3,6 +3,7 @@
 exclude_paths:
   - .cache/
   - .github/
+  - roles/requirements.yaml
   - vars/vault.yaml
 
 warn_list:

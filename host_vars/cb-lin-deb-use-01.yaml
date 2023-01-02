@@ -73,13 +73,15 @@ containers:
     active: true
     image: postgres:14
     environment:
-      - POSTGRES_DATABASE=gitea
-      - POSTGRES_USER=gitea
-      - "POSTGRES_PASSWORD={{ postgres.gitea_password }}"
+      - "POSTGRES_USER={{ main_username }}"
+      - "POSTGRES_PASSWORD={{ postgres.password }}"
+      - "POSTGRES_MULTIPLE_DATABASES=\
+         gitea:{{ postgres.gitea_password }},\
+         woodpecker:{{ postgres.woodpecker_password }}"
     volumes:
       - "{{ appdata_path }}/postgresql/data:/var/lib/postgresql/data"
     restart: unless-stopped
-  # Gitea
+  # Gitea - https://docs.gitea.io/en-us/install-with-docker/
   - service_name: gitea
     active: true
     image: gitea/gitea:1.19.3
@@ -100,6 +102,71 @@ containers:
       - /etc/localtime:/etc/localtime:ro
     depends_on:
       - postgres
+    restart: unless-stopped
+  # Woodpecker CI - https://woodpecker-ci.org/docs/administration/setup
+  # Front end and agent orchestration
+  # https://containers.fan/posts/setup-gitea-with-woodpecker-ci/
+  # https://github.com/woodpecker-ci/woodpecker/blob/master/docs/docs/
+  # 30-administration/70-proxy.md#traefik
+  - service_name: woodpecker-server
+    active: true
+    image: "woodpeckerci/woodpecker-server:{{ woodpecker.version_tag }}"
+    labels:
+      - traefik.enable=true
+
+      # Web server
+      - "traefik.http.routers.woodpecker.rule=\
+         Host(`ci.{{ domain_name }}`)"
+      # - traefik.http.routers.woodpecker.service=woodpecker
+      - traefik.http.services.woodpecker.loadbalancer.server.port=8000
+
+      # gRPC service
+      # Don't need this - Agent will communicate directly through Docker network
+      # - "traefik.http.routers.woodpecker-grpc.rule=\
+      #   Host(`woodpecker-grpc.{{ domain_name }}`)"
+      # - traefik.http.routers.woodpecker-grpc.service=woodpecker-grpc
+      # - traefik.http.services.woodpecker-grpc.loadbalancer.server.port=9000
+      # - traefik.http.services.woodpecker-grpc.loadbalancer.server.scheme=h2c
+    extra_hosts:
+      - "git.cbarts.net:traefik"
+    depends_on:
+      - postgres
+    volumes:
+      - "{{ appdata_path }}/woodpecker/server:/var/lib/woodpecker"
+    environment:
+      # Requires PostgreSQL >= 11
+      # https://woodpecker-ci.org/docs/administration/
+      # database#configure-postgres
+      - WOODPECKER_DATABASE_DRIVER=postgres
+      - "WOODPECKER_DATABASE_DATASOURCE=postgres://woodpecker:\
+        {{ postgres.woodpecker_password }}@postgres:5432/postgres?\
+        sslmode=disable"
+      - WOODPECKER_OPEN=true
+      - "WOODPECKER_HOST=https://ci.{{ domain_name }}"
+      - "WOODPECKER_AGENT_SECRET={{ woodpecker.agent_secret }}"
+      - WOODPECKER_GITEA=true
+      - "WOODPECKER_GITEA_URL=https://git.{{ domain_name }}"
+      - "WOODPECKER_GITEA_CLIENT={{ woodpecker.gitea_client }}"
+      - "WOODPECKER_GITEA_SECRET={{ woodpecker.gitea_secret }}"
+    restart: unless-stopped
+  # Woodpecker Agent
+  # > You can add more agents to increase the number of parallel builds or set
+  # > the agent's WOODPECKER_MAX_PROCS=1 environment variable to increase the
+  # > number of parallel builds for that agent.
+  - service_name: woodpecker-agent
+    active: true
+    image: "woodpeckerci/woodpecker-agent:{{ woodpecker.version_tag }}"
+    command: agent
+    volumes:
+      # Agents run pipelien steps as Docker containers
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Woodpecker Agent configuration
+      # https://woodpecker-ci.org/docs/administration/agent-config
+      - WOODPECKER_SERVER=woodpecker-server:9000
+      - "WOODPECKER_AGENT_SECRET={{ woodpecker.agent_secret }}"
+    depends_on:
+      - woodpecker-server
     restart: unless-stopped
 
 autorestic_locations:

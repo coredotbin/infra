@@ -53,7 +53,7 @@ containers:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       - traefik.enable=true
-      - treafik.http.routers.api.entrypoints=http
+      - treafik.http.routers.api.entrypoints=http,https
       - "traefik.http.routers.api.rule=Host(`traefik.{{ domain_name }}`)"
       - traefik.http.routers.api.service=api@internal
     depends_on:
@@ -83,6 +83,7 @@ containers:
     image: influxdb:2.0
     labels:
       - traefik.enable=true
+      - traefik.http.routers.influxdb.entrypoints=http,https
       - "traefik.http.routers.influxdb.rule=Host(`influxdb.{{ domain_name }}`)"
       - traefik.http.services.influxdb.loadbalancer.server.port=8086
     volumes:
@@ -171,8 +172,11 @@ containers:
     image: ghcr.io/home-assistant/home-assistant:stable
     labels:
       - traefik.enable=true
+      - traefik.http.routers.homeassistant.entrypoints=http,https
       - "traefik.http.routers.homeassistant.rule=Host(`home.{{ domain_name }}`)"
       - traefik.http.services.homeassistant.loadbalancer.server.port=8123
+      - "traefik.http.services.homeassistant.loadbalancer.healthcheck\
+         .path=/lovelace"
     volumes:
       - "{{ appdata_path }}/homeassistant:{{ container_config_path }}"
       - /etc/localtime:/etc/localtime:ro
@@ -187,18 +191,23 @@ containers:
     labels:
       - traefik.enable=true
       # Web interface
-      - "traefik.http.routers.unifi.rule=Host(`unifi.{{ domain_name }}`)"
+      - traefik.http.routers.unifi.entrypoints=http,https
+      - "traefik.http.routers.unifi.rule=Host(`unifi.{{ domain_name }}`) \
+         && !PathPrefix(`/inform`)"
       - traefik.http.routers.unifi.service=unifi@docker
       - traefik.http.routers.unifi.tls=true
       - traefik.http.services.unifi.loadbalancer.server.port=8443
       - traefik.http.services.unifi.loadbalancer.server.scheme=https
+      - "traefik.http.services.unifi.loadbalancer.healthcheck\
+        .path=/manage/account/login"
       # Inform URL
-      - "traefik.http.routers.unifi-inform.rule=Host(`unifi.{{ domain_name }}`)\
-         && PathPrefix(`/inform`)"
-      - traefik.http.routers.unifi-inform.entrypoints=unifi-inform
-      - traefik.http.routers.unifi-inform.service=unifi-inform@docker
-      - traefik.http.services.unifi-inform.loadbalancer.server.port=8080
-      - traefik.http.services.unifi-inform.loadbalancer.server.scheme=http
+      - "traefik.tcp.routers.unifi-inform.rule=Host(`unifi.\
+         {{ domain_name }}`) && PathPrefix(`/inform`)"
+      - traefik.tcp.routers.unifi-inform.entrypoints=unifi-inform
+      - traefik.tcp.routers.unifi-inform.service=unifi-inform@docker
+      - traefik.tcp.services.unifi-inform.loadbalancer.server.port=8080
+      - "traefik.tcp.services.unifi-inform.loadbalancer.healthcheck\
+        .path=/inform"
     volumes:
       - "{{ appdata_path }}/unifi:/unifi"
     restart: unless-stopped
@@ -237,6 +246,7 @@ containers:
     image: vabene1111/recipes
     labels:
       - traefik.enable=true
+      - traefik.http.routers.tandoor.entrypoints=http,https
       - "traefik.http.routers.tandoor.rule=Host(`tandoor.{{ domain_name }}`)"
       - traefik.http.services.tandoor.loadbalancer.server.port=8080
     environment:
@@ -259,8 +269,11 @@ containers:
     image: jellyfin/jellyfin
     labels:
       - traefik.enable=true
+      - traefik.http.routers.jellyfin.entrypoints=http,https
       - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.{{ domain_name }}`)"
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
+      - "traefik.http.services.jellyfin.loadbalancer.healthcheck\
+        .path=/web/index.html"
     environment:
       - "JELLYFIN_PublishedServerUrl=jellyfin.{{ domain_name }}"
     volumes:
@@ -272,6 +285,7 @@ containers:
     image: haugene/transmission-openvpn
     labels:
       - traefik.enable=true
+      - traefik.http.routers.transmission.entrypoints=http,https
       - "traefik.http.routers.transmission.rule=\
         Host(`transmission.{{ domain_name }}`)"
       - traefik.http.services.transmission.loadbalancer.server.port=9091
@@ -294,6 +308,7 @@ containers:
     image: linuxserver/sonarr
     labels:
       - traefik.enable=true
+      - traefik.http.routers.sonarr.entrypoints=http,https
       - "traefik.http.routers.sonarr.rule=Host(`sonarr.{{ domain_name }}`)"
       - traefik.http.services.sonarr.loadbalancer.server.port=8989
     include_global_env_vars: true
@@ -307,6 +322,7 @@ containers:
     image: linuxserver/radarr
     labels:
       - traefik.enable=true
+      - traefik.http.routers.radarr.entrypoints=http,https
       - "traefik.http.routers.radarr.rule=Host(`radarr.{{ domain_name }}`)"
       - traefik.http.services.radarr.loadbalancer.server.port=7878
     include_global_env_vars: true
@@ -320,6 +336,7 @@ containers:
     image: linuxserver/prowlarr:develop
     labels:
       - traefik.enable=true
+      - traefik.http.routers.prowlarr.entrypoints=http,https
       - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.{{ domain_name }}`)"
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
     include_global_env_vars: true

@@ -16,6 +16,10 @@ containers:
       - 443:443
       # unifi-inform
       - 8080:8080
+      # DLNA
+      - 1900:1900/udp
+      # jellyfin-discovery
+      - 7359:7359/udp
     command:
       - --api.dashboard=true
 
@@ -34,7 +38,7 @@ containers:
 
       - --entrypoints.unifi-inform.address=:8080
 
-      - --entrypoints.dlna.address=:1900/udp
+      - --entrypoints.jellyfin-dlna.address=:1900/udp
       - --entrypoints.jellyfin-discovery.address=:7359/udp
 
       # Let's Encrypt certificates
@@ -267,16 +271,15 @@ containers:
       - traefik.http.routers.jellyfin.service=jellyfin@docker
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
       # DLNA
-      - "traefik.http.routers.dlna.rule=Host(`jellyfin.{{ domain_name }}`)"
-      - traefik.http.routers.dlna.entrypoints=dlna
-      - traefik.http.routers.dlna.service=dlna@docker
-      - traefik.http.services.dlna.loadbalancer.server.port=1900/udp
+      - traefik.udp.routers.jellyfin-dlna.entrypoints=jellyfin-dlna
+      - traefik.udp.routers.jellyfin-dlna.service=jellyfin-dlna@docker
+      - traefik.udp.services.jellyfin-dlna.loadbalancer.server.port=1900
+      - traefik.udp.services.jellyfin-dlna.passhostheader=true
       # Auto-discovery
-      - "traefik.http.routers.jellyfin-discovery.rule=\
-         Host(`jellyfin.{{ domain_name }}`)"
-      - traefik.http.routers.jellyfin-discovery.entrypoints=jellyfin-discovery
-      - traefik.http.routers.jellyfin-discovery.service=jellyfin-discovery@docker
-      - traefik.http.services.jellyfin-discovery.loadbalancer.server.port=7359/udp
+      - traefik.udp.routers.jellyfin-discovery.entrypoints=jellyfin-discovery
+      - traefik.udp.routers.jellyfin-discovery.service=jellyfin-discovery@docker
+      - "traefik.udp.services.jellyfin-discovery.loadbalancer.server\
+        .port=7359"
     environment:
       - "JELLYFIN_PublishedServerUrl=jellyfin.{{ domain_name }}"
     volumes:

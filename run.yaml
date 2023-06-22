@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Play for all hosts
+  hosts: all
   vars_files:
     - 'vars/vault.yaml'
   roles:
@@ -7,7 +8,8 @@
     - role: oefenweb.fail2ban
     - role: ironicbadger.bash_aliases
 
-- hosts: docker_hosts
+- name: Play for Docker hosts
+  hosts: docker_hosts
   vars_files:
     - 'vars/vault.yaml'
   roles:
@@ -15,13 +17,15 @@
     - role: docker_compose_generator
     - role: autorestic
 
-- hosts: dhcp
+- name: Play for DHCP hosts
+  hosts: dhcp
   vars_files:
     - 'vars/vault.yaml'
   roles:
     - role: dhcp
 
-# - hosts: nextcloud
+# - name: Play for Nextcloud hosts
+#   hosts: nextcloud
 #   vars_files:
 #     - 'vars/vault.yaml'
 #   roles:

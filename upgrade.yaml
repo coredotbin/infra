@@ -1,5 +1,7 @@
 ---
-- hosts: all
+
+- name: Play to upgrade apt packages on Debian hosts
+  hosts: debian
   vars_files:
     - 'vars/vault.yaml'
   tasks:

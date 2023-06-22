@@ -201,12 +201,12 @@ containers:
       - "traefik.http.services.unifi.loadbalancer.healthcheck\
         .path=/manage/account/login"
       # Inform URL
-      - "traefik.tcp.routers.unifi-inform.rule=Host(`unifi.\
-         {{ domain_name }}`) && PathPrefix(`/inform`)"
-      - traefik.tcp.routers.unifi-inform.entrypoints=unifi-inform
-      - traefik.tcp.routers.unifi-inform.service=unifi-inform@docker
-      - traefik.tcp.services.unifi-inform.loadbalancer.server.port=8080
-      - "traefik.tcp.services.unifi-inform.loadbalancer.healthcheck\
+      - "traefik.http.routers.unifi-inform.rule=Host(`unifi.{{ domain_name }}`)"
+      - traefik.http.routers.unifi-inform.entrypoints=unifi-inform
+      - traefik.http.routers.unifi-inform.service=unifi-inform@docker
+      - traefik.http.services.unifi-inform.loadbalancer.server.port=8080
+      - traefik.http.services.unifi-inform.loadbalancer.server.scheme=http
+      - "traefik.http.services.unifi-inform.loadbalancer.healthcheck\
         .path=/inform"
     volumes:
       - "{{ appdata_path }}/unifi:/unifi"

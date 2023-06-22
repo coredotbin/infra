@@ -157,7 +157,7 @@ containers:
       - "{{ appdata_path }}/hydroxide:/.config/hydroxide"
     restart: unless-stopped
   - service_name: grafana
-    active: true
+    active: false
     image: grafana/grafana-oss
     labels:
       - traefik.enable=true
@@ -203,7 +203,7 @@ containers:
       - "{{ appdata_path }}/unifi:/unifi"
     restart: unless-stopped
   - service_name: shinobi
-    active: true
+    active: false
     image: registry.gitlab.com/shinobi-systems/shinobi:dev
     labels:
       - traefik.enable=true
@@ -220,7 +220,7 @@ containers:
       - "{{ media_path }}/recordings:/home/Shinobi/videos:rw"
     restart: unless-stopped
   - service_name: librespeed
-    active: true
+    active: false
     image: adolfintel/speedtest
     labels:
       - traefik.enable=true

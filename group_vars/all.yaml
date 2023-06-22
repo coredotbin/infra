@@ -13,5 +13,6 @@ bash_aliases:
   - {alias: "ls", command: "ls --color=auto"}
   - {alias: "ll", command: "ls -lh --color=auto"}
   - {alias: "la", command: "ls -lah --color=auto"}
+  - {alias: "dpull", command: "docker compose pull"}
   - {alias: "dup", command: "docker compose up -d"}
   - {alias: "dstop", command: "docker compose stop"}

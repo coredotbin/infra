@@ -237,7 +237,7 @@ containers:
     image: vabene1111/recipes
     labels:
       - traefik.enable=true
-      - "traefik.http.routers.tandoor.rule=Host(`recipes.{{ domain_name }}`)"
+      - "traefik.http.routers.tandoor.rule=Host(`tandoor.{{ domain_name }}`)"
       - traefik.http.services.tandoor.loadbalancer.server.port=8080
     environment:
       - ALLOWED_HOSTS=*

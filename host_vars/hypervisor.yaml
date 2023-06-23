@@ -26,12 +26,10 @@ containers:
       - --entrypoints.http.address=:80
       - --entrypoints.http.http.redirections.entryPoint.to=https
       - --entrypoints.http.http.redirections.entryPoint.scheme=https
-
       - --entrypoints.https.address=:443
       - --entrypoints.https.http.tls.certresolver=linode
       - "--entrypoints.https.http.tls.domains[0].main={{ domain_name }}"
       - "--entrypoints.https.http.tls.domains[0].sans=*.{{ domain_name }}"
-
       - --entrypoints.unifi-inform.address=:8080
 
       # Let's Encrypt certificates
@@ -59,6 +57,7 @@ containers:
     depends_on:
       - influxdb
     restart: unless-stopped
+
   - service_name: postgres
     active: true
     image: postgres:14
@@ -66,6 +65,7 @@ containers:
       - "POSTGRES_USER={{ main_username }}"
       - "POSTGRES_PASSWORD={{ postgres.password }}"
       - "POSTGRES_MULTIPLE_DATABASES=\
+         authelia:{{ postgres.authelia_password }},\
          nextcloud:{{ postgres.nextcloud_password }},\
          tandoor:{{ postgres.tandoor_password }}"
     volumes:
@@ -78,6 +78,7 @@ containers:
          create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/\
          create-multiple-postgresql-databases.sh"
     restart: always
+
   - service_name: influxdb
     active: true
     image: influxdb:2.0
@@ -89,14 +90,16 @@ containers:
     volumes:
       - "{{ appdata_path }}/influxdb/influxdb2:/var/lib/influxdb2"
     restart: unless-stopped
+
   - service_name: redis
-    active: false
+    active: true
     image: bitnami/redis:latest
     environment:
       - "REDIS_PASSWORD={{ redis_password }}"
     volumes:
       - /var/run/redis.sock:/var/run/redis.sock:z
     restart: always
+
   # Telegraf - https://registry.hub.docker.com/_/telegraf/
   # https://github.com/influxdata/telegraf/blob/master/docs/CONFIGURATION.md
   # https://github.com/influxdata/telegraf/tree/master/plugins/inputs/docker
@@ -129,16 +132,63 @@ containers:
     depends_on:
       - influxdb
     restart: unless-stopped
-  # TODO: Configure Authelia role
+
   - service_name: authelia
-    active: false
+    active: true
     image: authelia/authelia
+    environment:
+      - AUTHELIA_SERVER_HOST=0.0.0.0
+      - AUTHELIA_SERVER_PORT=9091
+      - "AUTHELIA_JWT_SECRET_FILE={{ container_config_path }}/secrets/jwt"
+      - AUTHELIA_THEME=dark
+      - AUTHELIA_LOG_LEVEL=info
+      - "AUTHELIA_DEFAULT_REDIRECTION_URL=https://login.{{ domain_name }}"
+      - AUTHELIA_TOTP_ISSUER=authelia.com
+
+      # Authentication
+      - "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PATH={{ container_config_path }}\
+        /users.yaml"
+      # - AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_RESET_DISABLE=true
+      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ALGORITHM=argon2id
+      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ITERATIONS=2
+      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SALT_LENGTH=24
+      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_PARALLELISM=8
+      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_MEMORY=64
+
+      # Access Control
+      - AUTHELIA_ACCESS_CONTROL_DEFAULT_POLICY=deny
+
+      # Session
+      - AUTHELIA_SESSION_NAME=authelia_session
+      - "AUTHELIA_SESSION_SECRET_FILE={{ container_config_path }}\
+         /secrets/session"
+      # - AUTHELIA_SESSION_REDIS_HOST=redis
+      # - AUTHELIA_SESSION_REDIS_PORT=
+      # - AUTHELIA_SESSION_REDIS_USERNAME=
+      # - "AUTHELIA_SESSION_REDIS_PASSWORD_FILE={{ container_config_path }}\
+      # /secrets/redis"
+
+      # Storage
+      - AUTHELIA_STORAGE_POSTGRES_HOST=postgres
+      - AUTHELIA_STORAGE_POSTGRES_PORT=5432
+      - AUTHELIA_STORAGE_POSTGRES_DATABASE=authelia
+      - AUTHELIA_STORAGE_POSTGRES_USERNAME=authelia
+      - "AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE={{ container_config_path }}\
+         /secrets/postgres"
+
+      # Notifier
+      - "AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME={{ container_config_path }}\
+        /notifications.txt"
+      # - AUTHELIA_NOTIFIER_SMTP_HOST=
+      # - AUTHELIA_NOTIFIER_SMTP_USERNAME=
+      # - "AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE={{ container_config_path }}\
+      #    /secrets/smtp"
     labels:
       - traefik.enable=true
       - "traefik.http.routers.authelia.rule=Host(`login.{{ domain_name }}`)"
       - traefik.http.services.authelia.loadbalancer.server.port=9091
-      - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091\
-         /api/verify?rd=https://login.{{ domain_name }}/"
+      - "traefik.http.middlewares.authelia.forwardauth.address=\
+         http://authelia:9091/api/verify?rd=https://login.{{ domain_name }}/"
       - traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true
       - "traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=\
          Remote-User,Remote-Groups,Remote-Name,Remote-Email"
@@ -149,6 +199,7 @@ containers:
       - redis
       - postgres
     restart: unless-stopped
+
   - service_name: hydroxide
     active: true
     image: ghcr.io/coredotbin/hydroxide-docker:master

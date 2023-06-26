@@ -52,6 +52,7 @@ containers:
     labels:
       - traefik.enable=true
       - treafik.http.routers.api.entrypoints=http,https
+      - traefik.http.routers.api.middlewares=authelia@docker
       - "traefik.http.routers.api.rule=Host(`traefik.{{ domain_name }}`)"
       - traefik.http.routers.api.service=api@internal
     depends_on:
@@ -91,6 +92,7 @@ containers:
       - "{{ appdata_path }}/influxdb/influxdb2:/var/lib/influxdb2"
     restart: unless-stopped
 
+  # Redis - https://github.com/bitnami/containers/tree/main/bitnami/redis
   - service_name: redis
     active: true
     image: bitnami/redis:latest
@@ -133,57 +135,66 @@ containers:
       - influxdb
     restart: unless-stopped
 
+  # Authelia - https://www.authelia.com/integration/deployment/docker/
   - service_name: authelia
     active: true
     image: authelia/authelia
+    # https://www.authelia.com/configuration/methods/environment/
+    # Commented vars are already set in the configuration file and should not
+    # be overwriten at this time.
     environment:
-      - AUTHELIA_SERVER_HOST=0.0.0.0
-      - AUTHELIA_SERVER_PORT=9091
-      - "AUTHELIA_JWT_SECRET_FILE={{ container_config_path }}/secrets/jwt"
+      # TODO: Set up Authelia Ansible role to manage this configuration file
+      # - "AUTHELIA_JWT_SECRET_FILE={{ container_config_path }}/secrets/jwt"
       - AUTHELIA_THEME=dark
       - AUTHELIA_LOG_LEVEL=info
-      - "AUTHELIA_DEFAULT_REDIRECTION_URL=https://login.{{ domain_name }}"
-      - AUTHELIA_TOTP_ISSUER=authelia.com
+      - "AUTHELIA_DEFAULT_REDIRECTION_URL=https://dashboard.{{ domain_name }}"
 
       # Authentication
-      - "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PATH={{ container_config_path }}\
-        /users.yaml"
-      # - AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_RESET_DISABLE=true
-      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ALGORITHM=argon2id
-      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ITERATIONS=2
-      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SALT_LENGTH=24
-      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_PARALLELISM=8
-      - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_MEMORY=64
+      # This needs a backslash at the end of line!
+      # - "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PATH={{ container_config_path }}
+      #   /users.yaml"
+      # - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ALGORITHM=argon2id
+      # - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ITERATIONS=2
+      # - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SALT_LENGTH=24
+      # - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_PARALLELISM=8
+      # - AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_MEMORY=64
 
-      # Access Control
-      - AUTHELIA_ACCESS_CONTROL_DEFAULT_POLICY=deny
+      # # Access Control
+      # - AUTHELIA_ACCESS_CONTROL_DEFAULT_POLICY=deny
 
-      # Session
-      - AUTHELIA_SESSION_NAME=authelia_session
-      - "AUTHELIA_SESSION_SECRET_FILE={{ container_config_path }}\
-         /secrets/session"
-      # - AUTHELIA_SESSION_REDIS_HOST=redis
-      # - AUTHELIA_SESSION_REDIS_PORT=
-      # - AUTHELIA_SESSION_REDIS_USERNAME=
-      # - "AUTHELIA_SESSION_REDIS_PASSWORD_FILE={{ container_config_path }}\
-      # /secrets/redis"
+      # # Two Factor
+      # - AUTHELIA_TOTP_ISSUER=authelia.com
 
-      # Storage
-      - AUTHELIA_STORAGE_POSTGRES_HOST=postgres
-      - AUTHELIA_STORAGE_POSTGRES_PORT=5432
-      - AUTHELIA_STORAGE_POSTGRES_DATABASE=authelia
-      - AUTHELIA_STORAGE_POSTGRES_USERNAME=authelia
-      - "AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE={{ container_config_path }}\
-         /secrets/postgres"
+      # # Session
+      # - AUTHELIA_SESSION_NAME=authelia_session
+      # - "AUTHELIA_SESSION_SECRET_FILE={{ container_config_path }}\
+      #    /secrets/session"
+      # # Unsure of default bitnami/redis username at this time
+      # # - AUTHELIA_SESSION_REDIS_HOST=redis
+      # # - AUTHELIA_SESSION_REDIS_PORT=
+      # # - AUTHELIA_SESSION_REDIS_USERNAME=
+      # # - "AUTHELIA_SESSION_REDIS_PASSWORD_FILE={{ container_config_path }}\
+      # # /secrets/redis"
 
-      # Notifier
-      - "AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME={{ container_config_path }}\
-        /notifications.txt"
+      # # Storage
+      # - AUTHELIA_STORAGE_POSTGRES_HOST=postgres
+      # - AUTHELIA_STORAGE_POSTGRES_PORT=5432
+      # - AUTHELIA_STORAGE_POSTGRES_DATABASE=authelia
+      # - AUTHELIA_STORAGE_POSTGRES_USERNAME=authelia
+      # - "AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE={{ container_config_path }}\
+      #    /secrets/postgres"
+
+      # # Notifier
+      # - "AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME={{ container_config_path }}\
+      #   /notifications.txt"
+      # TODO: Configure email notification
       # - AUTHELIA_NOTIFIER_SMTP_HOST=
       # - AUTHELIA_NOTIFIER_SMTP_USERNAME=
       # - "AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE={{ container_config_path }}\
       #    /secrets/smtp"
     labels:
+      # Apply the authelia middleware to containers with the following label
+      # - traefik.http.routers.<name>.middlewares=authelia@docker
       - traefik.enable=true
       - "traefik.http.routers.authelia.rule=Host(`login.{{ domain_name }}`)"
       - traefik.http.services.authelia.loadbalancer.server.port=9091
@@ -337,6 +348,7 @@ containers:
     labels:
       - traefik.enable=true
       - traefik.http.routers.transmission.entrypoints=http,https
+      - traefik.http.routers.transmission.middlewares=authelia@docker
       - "traefik.http.routers.transmission.rule=\
         Host(`transmission.{{ domain_name }}`)"
       - traefik.http.services.transmission.loadbalancer.server.port=9091
@@ -360,6 +372,7 @@ containers:
     labels:
       - traefik.enable=true
       - traefik.http.routers.sonarr.entrypoints=http,https
+      - traefik.http.routers.sonarr.middlewares=authelia@docker
       - "traefik.http.routers.sonarr.rule=Host(`sonarr.{{ domain_name }}`)"
       - traefik.http.services.sonarr.loadbalancer.server.port=8989
     include_global_env_vars: true
@@ -374,6 +387,7 @@ containers:
     labels:
       - traefik.enable=true
       - traefik.http.routers.radarr.entrypoints=http,https
+      - treafik.http.routesr.radarr.middlewares=authelia@docker
       - "traefik.http.routers.radarr.rule=Host(`radarr.{{ domain_name }}`)"
       - traefik.http.services.radarr.loadbalancer.server.port=7878
     include_global_env_vars: true
@@ -388,6 +402,7 @@ containers:
     labels:
       - traefik.enable=true
       - traefik.http.routers.prowlarr.entrypoints=http,https
+      - traefik.http.routers.prowlarr.middlewares=authelia@docker
       - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.{{ domain_name }}`)"
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
     include_global_env_vars: true

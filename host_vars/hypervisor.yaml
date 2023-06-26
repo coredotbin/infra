@@ -17,8 +17,15 @@ containers:
       # unifi-inform
       - 8080:8080
     command:
+      # https://doc.traefik.io/traefik/reference/static-configuration/cli/
+      # Additional (non-Docker integration) routers should be added in the
+      # static configuration file.
+      # TODO: Add Traefik role?
+
+      # Dashboard
       - --api.dashboard=true
 
+      # Providers (Docker integration)
       - --providers.docker
       - --providers.docker.exposedByDefault=false
 
@@ -50,44 +57,70 @@ containers:
       - "{{ appdata_path }}/traefik/config:/etc/traefik"
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
+      ## Router for dashboard
       - traefik.enable=true
       - treafik.http.routers.api.entrypoints=http,https
+      # Require authentication through Authelia for dashboard
+      # Note: Disable this when testing/changing Authelia! Will get a 404 if
+      # Authelia is not working correctly.
       - traefik.http.routers.api.middlewares=authelia@docker
       - "traefik.http.routers.api.rule=Host(`traefik.{{ domain_name }}`)"
       - traefik.http.routers.api.service=api@internal
+      ## Flame
+      - flame.type=application
+      - flame.name=Traefik Dashboard
+      - "flame.url=https://traefik.{{ domain_name }}"
+      - flame.icon=server
     depends_on:
       - influxdb
     restart: unless-stopped
 
+  # PostgreSQL
+  # https://github.com/docker-library/docs/blob/master/postgres/README.md
+  # Used for
+  # - Authelia
+  # - Nextcloud (WIP)
+  # - Tandoor
   - service_name: postgres
     active: true
     image: postgres:14
     environment:
       - "POSTGRES_USER={{ main_username }}"
       - "POSTGRES_PASSWORD={{ postgres.password }}"
+      # Credit to mrts on Github
+      # https://github.com/mrts/docker-postgresql-multiple-databases
+      # Forked here
+      # https://github.com/coredotbin/docker-postgresql-multiple-databases
       - "POSTGRES_MULTIPLE_DATABASES=\
          authelia:{{ postgres.authelia_password }},\
          nextcloud:{{ postgres.nextcloud_password }},\
          tandoor:{{ postgres.tandoor_password }}"
     volumes:
       - "{{ appdata_path }}/postgresql/data:/var/lib/postgresql/data"
-      # Credit to mrts on Github
-      # https://github.com/mrts/docker-postgresql-multiple-databases
-      # Forked here
-      # https://github.com/coredotbin/docker-postgresql-multiple-databases
       - "{{ appdata_path }}/postgresql/docker-postgresql-multiple-databases/\
          create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/\
          create-multiple-postgresql-databases.sh"
     restart: always
 
+  # InfluxDB - https://docs.influxdata.com/influxdb/v2.6/install/?t=Docker
+  # Accessed by other containers over the default Docker network
+  # Used for
+  # - Telegraf
+  # - Traefik metrics
   - service_name: influxdb
     active: true
     image: influxdb:2.0
     labels:
+      # Traefik
       - traefik.enable=true
       - traefik.http.routers.influxdb.entrypoints=http,https
       - "traefik.http.routers.influxdb.rule=Host(`influxdb.{{ domain_name }}`)"
       - traefik.http.services.influxdb.loadbalancer.server.port=8086
+      # Flame
+      - flame.type=application
+      - flame.name=InfluxDB
+      - "flame.url=https://influxdb.{{ domain_name }}"
+      - flame.icon=chart-line
     volumes:
       - "{{ appdata_path }}/influxdb/influxdb2:/var/lib/influxdb2"
     restart: unless-stopped
@@ -141,7 +174,7 @@ containers:
     image: authelia/authelia
     # https://www.authelia.com/configuration/methods/environment/
     # Commented vars are already set in the configuration file and should not
-    # be overwriten at this time.
+    # be overwritten at this time.
     environment:
       # TODO: Set up Authelia Ansible role to manage this configuration file
       # - "AUTHELIA_JWT_SECRET_FILE={{ container_config_path }}/secrets/jwt"
@@ -219,38 +252,75 @@ containers:
     volumes:
       - "{{ appdata_path }}/hydroxide:/.config/hydroxide"
     restart: unless-stopped
+
+  # Flame dashboard - https://github.com/pawelmalak/flame
+  - service_name: flame
+    active: true
+    image: pawelmalak/flame
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.flame.entrypoints=http,https
+      - traefik.http.routers.flame.middlewares=authelia@docker
+      - "traefik.http.routers.flame.rule=Host(`dashboard.{{ domain_name }}`)"
+      - traefik.http.services.flame.loadbalancer.server.port=5005
+    # environment:
+    #   - "PASSWORD={{ flame_password }}"
+    volumes:
+      - "{{ appdata_path }}/flame:/app/data"
+      # Trying out the Docker integration..
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+
+  # Grafana
+  # https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/
+  # TODO: Set up log aggregation
+  # https://grafana.com/docs/loki/latest/clients/promtail/
+  # https://grafana.com/oss/loki/
   - service_name: grafana
     active: false
     image: grafana/grafana-oss
     labels:
       - traefik.enable=true
+      - traefik.http.routers.grafana.entrypoints=http,https
       - "traefik.http.routers.grafana.rule=Host(`grafana.{{ domain_name }}`)"
       - traefik.http.services.grafana.loadbalancer.server.port=3000
     depends_on:
       - influxdb
     restart: unless-stopped
+
+  # Home Assistant
+  # https://www.home-assistant.io/installation/generic-x86-64#docker-compose
   - service_name: homeassistant
     active: true
     image: ghcr.io/home-assistant/home-assistant:stable
     labels:
+      # Traefik
       - traefik.enable=true
       - traefik.http.routers.homeassistant.entrypoints=http,https
       - "traefik.http.routers.homeassistant.rule=Host(`home.{{ domain_name }}`)"
       - traefik.http.services.homeassistant.loadbalancer.server.port=8123
       - "traefik.http.services.homeassistant.loadbalancer.healthcheck\
          .path=/lovelace"
+      # Flame
+      - flame.type=application
+      - flame.name=Home Assistant
+      - "flame.url=https://home.{{ domain_name }}"
+      - flame.icon=home-assistant
     volumes:
       - "{{ appdata_path }}/homeassistant:{{ container_config_path }}"
       - /etc/localtime:/etc/localtime:ro
       - "{{ media_path }}/homeassistant:/mnt"
     privileged: true
     restart: unless-stopped
+
+  # Unifi Controller - https://github.com/jacobalberty/unifi-docker
   - service_name: unifi
     active: true
     image: jacobalberty/unifi:latest
     ports:
       - 3478:3478
     labels:
+      ## Traefik
       - traefik.enable=true
       # Web interface
       - traefik.http.routers.unifi.entrypoints=http,https
@@ -270,47 +340,49 @@ containers:
       - traefik.http.services.unifi-inform.loadbalancer.server.scheme=http
       - "traefik.http.services.unifi-inform.loadbalancer.healthcheck\
         .path=/inform"
+      ## Flame
+      - flame.type=application
+      - flame.name=UniFi
+      - "flame.url=https://unifi.{{ domain_name }}"
+      - flame.icon=lan
     volumes:
       - "{{ appdata_path }}/unifi:/unifi"
     restart: unless-stopped
-  - service_name: shinobi
-    active: false
-    image: registry.gitlab.com/shinobi-systems/shinobi:dev
-    labels:
-      - traefik.enable=true
-      - "traefik.http.routers.shinobi.rule=Host(`shinobi.{{ domain_name }}`)"
-      - traefik.http.services.shinobi.loadbalancer.server.port=8080
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /dev/shm/shinobi/streams:/dev/shm/streams:rw
-      - "{{ appdata_path }}/shinobi/config:/config:rw"
-      - "{{ appdata_path }}/shinobi/customAutoLoad:/home/Shinobi/libs/\
-         customAutoLoad:rw"
-      - "{{ appdata_path }}/shinobi/database:/var/lib/mysql:rw"
-      - "{{ appdata_path }}/shinobi/plugins:/home/Shinobi/plugins:rw"
-      - "{{ media_path }}/recordings:/home/Shinobi/videos:rw"
-    restart: unless-stopped
+
   - service_name: librespeed
     active: false
     image: adolfintel/speedtest
     labels:
+      # Traefik
       - traefik.enable=true
       - "traefik.http.routers.librespeed.rule=\
-         Host(`librespeed.{{ domain_name }}`)"
+         Host(`speedtest.{{ domain_name }}`)"
       - traefik.http.services.librespeed.loadbalancer.server.port=80
+      # Flame
+      - flame.type=application
+      - flame.name=LibreSpeed
+      - "flame.url=https://speedtest.{{ domain_name }}"
+      - flame.icon=speedometer
     environment:
       - MODE=standalone
       - DISABLE_IPINFO=true
       - DISTANCE=false
     restart: unless-stopped
+
+  # Tandoor - https://github.com/TandoorRecipes/recipes
   - service_name: tandoor
     active: true
     image: vabene1111/recipes
     labels:
+      # Traefik
       - traefik.enable=true
       - traefik.http.routers.tandoor.entrypoints=http,https
       - "traefik.http.routers.tandoor.rule=Host(`tandoor.{{ domain_name }}`)"
       - traefik.http.services.tandoor.loadbalancer.server.port=8080
+      # Flame
+      - flame.type=application
+      - flame.name=Tandoor
+      - "flame.url=https://tandoor.{{ domain_name }}"
     environment:
       - ALLOWED_HOSTS=*
       - "SECRET_KEY={{ tandoor_secret_key }}"
@@ -326,32 +398,47 @@ containers:
     depends_on:
       - postgres
     restart: unless-stopped
+
+  # Jellyfin - https://jellyfin.org/docs/general/installation/container#docker
   - service_name: jellyfin
     active: true
     image: jellyfin/jellyfin
     labels:
+      # Traefik
       - traefik.enable=true
       - traefik.http.routers.jellyfin.entrypoints=http,https
       - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.{{ domain_name }}`)"
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
       - "traefik.http.services.jellyfin.loadbalancer.healthcheck\
         .path=/web/index.html"
+      # Flame
+      - flame.type=application
+      - flame.name=Jellyfin
+      - "flame.url=https://jellyfin.{{ domain_name }}"
+      - flame.icon=movie-outline
     environment:
       - "JELLYFIN_PublishedServerUrl=jellyfin.{{ domain_name }}"
     volumes:
       - "{{ appdata_path }}/jellyfin:/config"
       - "{{ media_path }}:/media:z"
     restart: unless-stopped
+
   - service_name: transmission
     active: true
     image: haugene/transmission-openvpn
     labels:
+      # Traefik
       - traefik.enable=true
       - traefik.http.routers.transmission.entrypoints=http,https
       - traefik.http.routers.transmission.middlewares=authelia@docker
       - "traefik.http.routers.transmission.rule=\
         Host(`transmission.{{ domain_name }}`)"
       - traefik.http.services.transmission.loadbalancer.server.port=9091
+      # Flame
+      - flame.type=application
+      - flame.name=Transmission
+      - "flame.url=https://transmission.{{ domain_name }}"
+      - flame.icon=download
     environment:
       - OPENVPN_PROVIDER=protonvpn
       - OPENVPN_CONFIG=ch.protonvpn.net.udp
@@ -370,11 +457,17 @@ containers:
     active: true
     image: linuxserver/sonarr
     labels:
+      # Traefik
       - traefik.enable=true
       - traefik.http.routers.sonarr.entrypoints=http,https
       - traefik.http.routers.sonarr.middlewares=authelia@docker
       - "traefik.http.routers.sonarr.rule=Host(`sonarr.{{ domain_name }}`)"
       - traefik.http.services.sonarr.loadbalancer.server.port=8989
+      # Flame
+      - flame.type=application
+      - flame.name=Sonarr
+      - "flame.url=https://sonarr.{{ domain_name }}"
+      - flame.icon=television-classic
     include_global_env_vars: true
     volumes:
       - "{{ appdata_path }}/sonarr:{{ container_config_path }}"
@@ -385,11 +478,17 @@ containers:
     active: true
     image: linuxserver/radarr
     labels:
+      # Traefik
       - traefik.enable=true
       - traefik.http.routers.radarr.entrypoints=http,https
-      - treafik.http.routesr.radarr.middlewares=authelia@docker
+      - treafik.http.routers.radarr.middlewares=authelia@docker
       - "traefik.http.routers.radarr.rule=Host(`radarr.{{ domain_name }}`)"
       - traefik.http.services.radarr.loadbalancer.server.port=7878
+      # Flame
+      - flame.type=application
+      - flame.name=Radarr
+      - "flame.url=https://radarr.{{ domain_name }}"
+      - flame.icon=movie-outline
     include_global_env_vars: true
     volumes:
       - "{{ appdata_path }}/radarr:{{ container_config_path }}"
@@ -400,11 +499,16 @@ containers:
     active: true
     image: linuxserver/prowlarr:develop
     labels:
+      # Traefik
       - traefik.enable=true
       - traefik.http.routers.prowlarr.entrypoints=http,https
       - traefik.http.routers.prowlarr.middlewares=authelia@docker
       - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.{{ domain_name }}`)"
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
+      # Flame
+      - flame.type=application
+      - flame.name=Prowlarr
+      - "flame.url=https://prowlarr.{{ domain_name }}"
     include_global_env_vars: true
     volumes:
       - "{{ appdata_path }}/prowlarr:{{ container_config_path }}"

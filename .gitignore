@@ -1,3 +1,4 @@
 .cache
 .vault-password
 *.swp
+terraform/terraform.tfvars

@@ -45,12 +45,13 @@ init: install-tools reqs ## Initialize git hooks and install
 
 ##@ Requirements
 
-reqs: ## Install Ansible Galaxy requirements
+reqs: ## Install Ansible Galaxy and Terraform requirements
+	terraform -chdir=terraform init
 	ansible-galaxy install -r roles/requirements.yaml
 forcereqs: ## Force install Ansible Galaxy requirements
 	ansible-galaxy install -r roles/requirements.yaml --force
 
-##@ Vault
+##@ Ansible Vault
 
 encrypt: ## Encrypt the Ansible vault
 	ansible-vault encrypt vars/vault.yaml
@@ -61,11 +62,13 @@ decrypt: ## Decrypt the Ansible vault
 
 .PHONY: lint
 lint: install-tools ## Lint yaml and Ansible
+	# Have not yet found a linter to use for Terraform/HCL
 	yamllint .
 	ansible-lint
 
 .PHONY: check
-check: ## Run Ansible playbook in check mode
+check: ## Plan Terraform changes and run Ansible playbook in check mode
+	terraform -chdir=terraform plan
 	ansible-playbook -b run.yaml --check
 
 ##@ Run
@@ -78,10 +81,14 @@ ifeq (run,$(firstword $(MAKECMDGOALS)))
   $(eval $(RUN_ARGS):;@:)
 endif
 
+.PHONY: terraform
+terraform: ## Apply Terraform changes
+	terraform -chdir=terraform apply
+
 .PHONY: run
 run: lint ## Run Ansible
 	ansible-playbook -b run.yaml $(RUN_ARGS)
 
 .PHONY: upgrade
-upgrade: ## Update and Upgrade apt packages
+upgrade: ## Update and Upgrade apt packages on all hosts
 	ansible-playbook -b upgrade.yaml

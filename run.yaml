@@ -22,7 +22,7 @@
   vars_files:
     - 'vars/vault.yaml'
   roles:
-    - role: dhcp
+    - role: dhcpd
 
 # - name: Play for Nextcloud hosts
 #   hosts: nextcloud

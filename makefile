@@ -1,8 +1,8 @@
 ##@ General
 
+# Credit the the Woodpecker-CI team for this awesome help script
 .PHONY: help
 help: ## Display this help
-	# Credit the the Woodpecker-CI team for this awesome line
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 install-tools: ## Install development tools
@@ -34,13 +34,15 @@ echo Running ansible-lint...
 hash ansible-lint > /dev/null 2>&1; if [ \$\$ -ne 0 ]; then ansible-lint || exit 1; fi
 EOT
 chmod +x .git/hooks/pre-commit
+else
+echo ERROR: Either the repository failed to download, or a new repository has not yet been initialized.
 fi
 echo Set git pre-commit hook
 endef
 export gitinit = $(value _gitinit)
 
 .PHONY: init
-init: install-tools reqs ## Initialize git hooks and install 
+init: install-tools reqs ## Initialize Git hooks, requirements, and dev tools
 	@ eval "$$gitinit"
 
 ##@ Requirements

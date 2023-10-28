@@ -92,6 +92,14 @@ endif
 run: lint ## Run Ansible
 	ansible-playbook -b run.yaml $(RUN_ARGS)
 
+# If the first argument is "upgrade"...
+ifeq (upgrade,$(firstword $(MAKECMDGOALS)))
+  # use the rest as arguments for "upgrade"
+  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(RUN_ARGS):;@:)
+endif
+
 .PHONY: upgrade
 upgrade: ## Update and Upgrade apt packages
-	ansible-playbook -b upgrade.yaml
+	ansible-playbook -b upgrade.yaml $(RUN_ARGS)

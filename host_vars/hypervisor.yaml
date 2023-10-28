@@ -16,6 +16,8 @@ containers:
       - 443:443
       # unifi-inform
       - 8080:8080
+      # coit
+      - 5683:5683/udp
     command:
       # https://doc.traefik.io/traefik/reference/static-configuration/cli/
       # Additional (non-Docker integration) routers should be added in the
@@ -38,6 +40,7 @@ containers:
       - "--entrypoints.https.http.tls.domains[0].main={{ domain_name }}"
       - "--entrypoints.https.http.tls.domains[0].sans=*.{{ domain_name }}"
       - --entrypoints.unifi-inform.address=:8080
+      - --entrypoints.coit.address=:5683/udp
 
       # Let's Encrypt certificates
       - --certificatesResolvers.linode.acme.dnsChallenge.provider=linode
@@ -296,11 +299,17 @@ containers:
     labels:
       # Traefik
       - traefik.enable=true
+      # HTTP
       - traefik.http.routers.homeassistant.entrypoints=http,https
       - "traefik.http.routers.homeassistant.rule=Host(`home.{{ domain_name }}`)"
       - traefik.http.services.homeassistant.loadbalancer.server.port=8123
       - "traefik.http.services.homeassistant.loadbalancer.healthcheck\
          .path=/lovelace"
+      # CoIT - Shelly
+      # https://www.home-assistant.io/integrations/shelly/
+      - traefik.udp.routers.hass-coit.entrypoints=coit
+      - "traffik.udp.routers.hass-coit.rule=Host(`home.{{ domain_name }}`)"
+      - traefik.udp.services.hass-coit.loadbalancer.server.port=5683
       # Flame
       - flame.type=application
       - flame.name=Home Assistant

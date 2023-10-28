@@ -66,9 +66,17 @@ lint: install-tools ## Lint yaml and Ansible
 	yamllint .
 	ansible-lint
 
+# If the first argument is "check"...
+ifeq (check,$(firstword $(MAKECMDGOALS)))
+  # use the rest as arguments for "check"
+  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(RUN_ARGS):;@:)
+endif
+
 .PHONY: check
 check: ## Run Ansible playbook in check mode
-	ansible-playbook -b run.yaml --check
+	ansible-playbook -b run.yaml --check $(RUN_ARGS)
 
 ##@ Run
 

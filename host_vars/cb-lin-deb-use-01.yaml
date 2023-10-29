@@ -82,7 +82,7 @@ containers:
   # Gitea
   - service_name: gitea
     active: true
-    image: gitea/gitea:1.19.3
+    image: gitea/gitea:1.20.5
     labels:
       - traefik.enable=true
       - "traefik.http.routers.gitea.rule=Host(`git.{{ domain_name }}`)"

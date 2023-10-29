@@ -6,7 +6,7 @@ roles:
     version: dev
   - name: coredotbin.openssh
     src: git+https://git.cbarts.net/coredotbin/ansible-role-openssh
-    version: v2.0.0
+    version: master
   - coredotbin.docker
   - name: ironicbadger.bash_aliases
     src: https://github.com/ironicbadger/ansible-role-bash-aliases.git

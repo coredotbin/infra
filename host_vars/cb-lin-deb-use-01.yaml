@@ -1,5 +1,17 @@
 ---
 
+# coredotbin.openssh
+openssh_port: 2222
+openssh_hostkeys:
+  - /etc/ssh/ssh_host_ed25519_key
+openssh_kexalgorithms:
+  - curve25519-sha256@libssh.org
+  - diffie-hellman-group-exchange-sha256
+openssh_macs:
+  - hmac-sha2-512-etm@openssh.com
+  - hmac-sha2-256-etm@openssh.com
+  - umac-128-etm@openssh.com
+
 # ironicbadger.docker_compose_generator
 appdata_path: /var/appdata
 media_path: /var/media
@@ -9,12 +21,13 @@ containers:
   - service_name: traefik
     active: true
     image: traefik
-    network_mode: host
     ports:
       # http
       - 80:80
       # https
       - 443:443
+      # ssh
+      - "22:22"
     command:
       - --api.dashboard=false
 
@@ -29,6 +42,8 @@ containers:
       - --entrypoints.https.address=:443
       - --entrypoints.https.http.tls.certresolver=linode
 
+      - --entrypoints.ssh.address=:22
+
       # Let's Encrypt certificates
       - --certificatesResolvers.linode.acme.dnsChallenge.provider=linode
       - "--certificatesResolvers.linode.acme.email={{ admin_email_address }}"
@@ -38,6 +53,12 @@ containers:
     volumes:
       - "{{ appdata_path }}/traefik/config:/etc/traefik"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    # Can be used to temporarily enable access to the Traefik dashboard
+    # labels:
+    #   - traefik.enable=true
+    #   - treafik.http.routers.api.entrypoints=http,https
+    #   - "traefik.http.routers.api.rule=Host(`traefik.{{ domain_name }}`)"
+    #   - treafik.http.routers.api.service=api@internal
     restart: unless-stopped
   - service_name: mysql
     active: true
@@ -85,10 +106,38 @@ containers:
     image: gitea/gitea:1.20.5
     labels:
       - traefik.enable=true
+      # Web
       - "traefik.http.routers.gitea.rule=Host(`git.{{ domain_name }}`)"
+      - traefik.http.routers.gitea.entrypoints=http,https
+      - treafik.http.routers.gitea.service=gitea@docker
       - traefik.http.services.gitea.loadbalancer.server.port=3000
+
+      # SSH
+      - traefik.tcp.routers.gitea-ssh.rule=ClientIP(`0.0.0.0`)
+      - traefik.tcp.routers.gitea-ssh.entrypoints=ssh
+      - traefik.tcp.routers.gitea-ssh.service=gitea-ssh@docker
+      - traefik.tcp.services.gitea-ssh.loadbalancer.server.port=2200
     include_global_env_vars: true
+    # https://docs.gitea.com/next/installation
+    # /install-with-docker#managing-deployments-with-environment-variables
+    # > "... any settings in `app.ini` can be set or overridden with an
+    # > environment variable of the form: `GITEA__SECTION_NAME__KEY_NAME`"
     environment:
+      # HTTP server configuration
+      - "GITEA__server__DOMAIN=git.{{ domain_name }}"
+      - "GITEA__server__ROOT_URL=https://git.{{ domain_name }}"
+      # Internal SSH server configuration
+      - GITEA__server__START_SSH_SERVER=false
+      - "GITEA__server__SSH_DOMAIN=git.{{ domain_name }}"
+      - GITEA__server__SSH_PORT=2200
+      - GITEA__server__SSH_LISTEN_PORT=2200
+      # Default values
+      # - GITEA__server__SSH_SERVER_KEY_EXCHANGES=
+      # - GITEA__server__SSH_SERVER_MACS=
+      # - GITEA__server__SSH_SERVER_HOST_KEYS=ssh/gitea.rsa,ssh/gogs.rsa
+      # Service configuration
+      - GITEA__service__DISABLE_REGISTRATION=true
+      # Database configuration
       - GITEA__database__DB_TYPE=postgres
       - GITEA__database__HOST=postgres:5432
       - GITEA__database__NAME=gitea

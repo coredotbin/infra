@@ -75,8 +75,8 @@ ifeq (check,$(firstword $(MAKECMDGOALS)))
 endif
 
 .PHONY: check
-check: ## Run Ansible playbook in check mode
-	ansible-playbook -b run.yaml --check $(RUN_ARGS)
+check: lint ## Run Ansible playbook in check mode
+	ansible-playbook -b run.yaml --check --diff $(RUN_ARGS)
 
 ##@ Run
 

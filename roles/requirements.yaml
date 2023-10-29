@@ -4,7 +4,9 @@ roles:
     scm: git
     src: https://github.com/coredotbin/ansible-role-docker-compose-generator
     version: dev
-  - coredotbin.openssh
+  - name: coredotbin.openssh
+    src: git+https://git.cbarts.net/coredotbin/ansible-role-openssh
+    version: v2.0.0
   - coredotbin.docker
   - name: ironicbadger.bash_aliases
     src: https://github.com/ironicbadger/ansible-role-bash-aliases.git

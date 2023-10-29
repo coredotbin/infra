@@ -97,7 +97,8 @@ containers:
       - "POSTGRES_MULTIPLE_DATABASES=\
          authelia:{{ postgres.authelia_password }},\
          nextcloud:{{ postgres.nextcloud_password }},\
-         tandoor:{{ postgres.tandoor_password }}"
+         tandoor:{{ postgres.tandoor_password }},\
+         netbox:{{ postgres.netbox_password }}"
     volumes:
       - "{{ appdata_path }}/postgresql/data:/var/lib/postgresql/data"
       - "{{ appdata_path }}/postgresql/docker-postgresql-multiple-databases/\
@@ -522,6 +523,145 @@ containers:
     volumes:
       - "{{ appdata_path }}/prowlarr:{{ container_config_path }}"
     restart: unless-stopped
+
+  # NetBox - https://github.com/netbox-community/netbox-docker
+  - service_name: netbox
+    active: true
+    image: "docker.io/netboxcommunity/netbox:{{ netbox.version_string }}"
+    anchor: netbox
+    ports:
+      - 8080
+    user: 'unit:root'
+    depends_on:
+      - postgres
+      - netbox-redis
+      - netbox-redis-cache
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.netbox.entrypoints=http,https
+      - "traefik.http.routers.netbox.rule=Host(`netbox.{{ domain_name }}`)"
+      - traefik.http.services.netbox.loadbalancer.server.port=8080
+    environment:
+      # Configure here, not in a separate env file
+      # General configuration
+      - CORS_ORIGIN_ALLOW_ALL=true
+      - SKIP_SUPERUSER=true
+      - GRAPHQL_ENABLED=true
+      - METRICS_ENABLED=false
+      - WEBHOOKS_ENABLED=true
+      - HOUSEKEEPING_INTERVAL=86400
+      - MEDIA_ROOT=/opt/netbox/netbox/media
+      - "RELEASE_CHECK_URL=https://api.github.com/repos/netbox-community\
+        /netbox/releases"
+      - "SECRET_KEY={{ netbox.secret_key }}"
+      # Database configuration
+      - DB_WAIT_DEBUG=1
+      - DB_HOST=netbox-postgres
+      - DB_NAME=netbox
+      - DB_USER=netbox
+      - "DB_PASSWORD={{ postgres.netbox_password }}"
+      # Email configuration
+      # - EMAIL_SERVER=hydroxide
+      # - EMAIL_PORT=1025
+      # - "EMAIL_FROM=netbox@{{ domain_name }}"
+      # - "EMAIL_USERNAME={{ hydroxide.username }}"
+      # - "EMAIL_PASSWORD={{ hydroxide.password }}"
+      # - EMAIL_SSL_CERTFILE=
+      # - EMAIL_SSL_KEYFILE=
+      # - EMAIL_TIMEOUT=5
+      # - EMAIL_USE_SSL=false
+      # - EMAIL_USE_TLS=false
+      # Redis cache configuration
+      - REDIS_CACHE_DATABASE=1
+      - REDIS_CACHE_HOST=netbox-redis-cache
+      - "REDIS_CACHE_PASSWORD={{ netbox.redis_password }}"
+      - REDIS_CACHE_SSL=false
+      - REDIS_CACHE_INSECURE_SKIP_TLS_VERIFY=false
+      # Redis configuration
+      - REDIS_DATABASE=0
+      - REDIS_HOST=netbox-redis
+      - "REDIS_PASSWORD={{ netbox.redis_password }}"
+      - REDIS_SSL=false
+    healthcheck:
+      start_period: 60s
+      timeout: 3s
+      interval: 15s
+      test: "curl -f http://localhost:8080/api/ || exit 1"
+    volumes:
+      - "{{ appdata_path }}/netbox/configuration:/etc/netbox/config:z,ro"
+      - "{{ media_path }}/netbox/media:/opt/netbox/netbox/media:rw"
+      - "{{ media_path }}/netbox/reports:/opt/netbox/netbox/reports:rw"
+      - "{{ appdata_path }}/netbox/scripts:/opt/netbox/netbox/scripts:rw"
+  - service_name: netbox-worker
+    active: true
+    fragment: netbox
+    ports:
+    labels:
+    depends_on:
+      - service: netbox
+        condition: service_healthy
+    command:
+      - /opt/netbox/venv/bin/python
+      - /opt/netbox/netbox/manage.py
+      - rqworker
+    healthcheck:
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      test: "ps -aux | grep -v grep | grep -q rqworker || exit 1"
+  - service_name: netbox-housekeeping
+    active: true
+    fragment: netbox
+    ports:
+    labels:
+    depends_on:
+      - service: netbox
+        condition: service_healthy
+    command:
+      - /opt/netbox/housekeeping.sh
+    healthcheck:
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      test: "ps -aux | grep -v grep | grep -q housekeeping || exit 1"
+  - service_name: netbox-postgres
+    active: true
+    image: docker.io/postgres:15-alpine
+    environment:
+      - POSTGRES_DB=netbox
+      - POSTGRES_USER=netbox
+      - "POSTGRES_PASSWORD={{ postgres.netbox_password }}"
+    volumes:
+      - "{{ appdata_path }}/netbox/postgres:/var/lib/postgresql/data"
+    restart: unless-stopped
+  - service_name: netbox-redis
+    active: true
+    image: docker.io/redis:7-alpine
+    environment:
+      - "REDIS_PASSWORD={{ netbox.redis_password }}"
+    command:
+      - sh
+      # This is to evaluate the $REDIS_PASSWORD from the env
+      - -c
+      # $$ because of docker compose
+      - redis-server --appendonly yes --requirepass $$REDIS_PASSWORD
+    volumes:
+      # Using appdata_path here because it's on an SSD
+      - "{{ appdata_path }}/netbox/redis:/data"
+  - service_name: netbox-redis-cache
+    active: true
+    image: docker.io/redis:7-alpine
+    environment:
+      - "REDIS_PASSWORD={{ netbox.redis_password }}"
+    command:
+      - sh
+      # This is to evaluate the $REDIS_PASSWORD from the env
+      - -c
+      # $$ because of docker compose
+      - redis-server --requirepass $$REDIS_PASSWORD
+    volumes:
+      # Using appdata_path here because it's on an SSD
+      - "{{ appdata_path }}/netbox/redis-cache:/data"
 
 autorestic_locations:
   - name: nextcloud-data

@@ -6,5 +6,9 @@ roles:
     version: dev
   - coredotbin.openssh
   - coredotbin.docker
-  - ironicbadger.bash_aliases
-  - oefenweb.fail2ban
+  - name: ironicbadger.bash_aliases
+    src: https://github.com/ironicbadger/ansible-role-bash-aliases.git
+    version: 1.0.3
+  - name: oefenweb.fail2ban
+    src: https://github.com/oefenweb/ansible-fail2ban.git
+    version: v4.0.2

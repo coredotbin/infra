@@ -433,6 +433,11 @@ containers:
       - "{{ media_path }}:/media:z"
     restart: unless-stopped
 
+  # Media stack - Transmission with OpenVPN, Radarr, Sonarr, and Prowlarr
+  # Transmission - https://github.com/haugene/docker-transmission-openvpn
+  # Radarr - https://docs.linuxserver.io/images/docker-radarr/
+  # Sonarr - https://docs.linuxserver.io/images/docker-sonarr/
+  # Prowlarr - https://docs.linuxserver.io/images/docker-prowlarr/
   - service_name: transmission
     active: true
     image: haugene/transmission-openvpn
@@ -451,7 +456,7 @@ containers:
       - flame.icon=download
     environment:
       - OPENVPN_PROVIDER=protonvpn
-      - OPENVPN_CONFIG=ch.protonvpn.net.udp
+      - OPENVPN_CONFIG=ch.protonvpn.udp
       - "OPENVPN_USERNAME={{ protonvpn_username }}"
       - "OPENVPN_PASSWORD={{ protonvpn_password }}"
       - LOCAL_NETWORK=10.0.0.0/16
@@ -533,7 +538,7 @@ containers:
       - 8080
     user: 'unit:root'
     depends_on:
-      - postgres
+      - netbox-postgres
       - netbox-redis
       - netbox-redis-cache
     labels:

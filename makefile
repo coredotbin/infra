@@ -21,21 +21,21 @@ if [ -d .git/ ]; then
 rm .git/hooks/pre-commit > /dev/null 2>&1
 cat <<EOT >> .git/hooks/pre-commit
 # git pre-commit
-echo Ensure vault is encrypted...
+printf "Checking that vault is encrypted...\n"
 if ( cat vars/vault.yaml | grep -q "\$ANSIBLE_VAULT;" ); then
-echo "\e[38;5;108mVault Encrypted. Safe to commit.\e[0m"
+printf "\033[0;32mVault Encrypted. Safe to commit.\033[0m\n"
 else
-echo "\e[38;5;208mVault not encrypted! Run 'make encrypt' and try again.\e[0m"
+printf  "\033[0;31mVault not encrypted! Run 'make encrypt' and try again.\033[0m\n"
 exit 1
 fi
-echo Running yamllint...
+printf "Running yamllint...\n"
 hash yamllint > /dev/null 2>&1; if [ \$\$ -ne 0 ]; then yamllint . || exit 1; fi
-echo Running ansible-lint...
+printf "Running ansible-lint..."
 hash ansible-lint > /dev/null 2>&1; if [ \$\$ -ne 0 ]; then ansible-lint || exit 1; fi
 EOT
 chmod +x .git/hooks/pre-commit
 else
-echo ERROR: Either the repository failed to download, or a new repository has not yet been initialized.
+printf "\033[1;31mError\033[0;31m: Either the repository failed to download, or a new repository has not yet been initialized.\033[0m\n"
 fi
 echo Set git pre-commit hook
 endef

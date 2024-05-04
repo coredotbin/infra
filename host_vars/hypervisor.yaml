@@ -379,6 +379,24 @@ containers:
       - DISTANCE=false
     restart: unless-stopped
 
+  # Grocy - https://github.com/linuxserver/docker-grocy
+  - service_name: grocy
+    active: true
+    image: lscr.io/linuxserver/grocy:latest
+    volumes:
+      - "{{ appdata_path }}/grocy/config:/config"
+    labels:
+      # Traefik
+      - traefik.enable=true
+      - "traefik.http.routers.grocy.rule=Host(`grocy.{{ domain_name }}`)"
+      - traefik.http.services.grocy.loadbalancer.server.port=9283
+      # Flame
+      - flame.type=application
+      - flame.name=Grocy
+      - "flame.url=https://grocy.{{ domain_name }}"
+      - flame.icon=baguette
+    restart: unless-stopped
+
   # Tandoor - https://github.com/TandoorRecipes/recipes
   - service_name: tandoor
     active: true

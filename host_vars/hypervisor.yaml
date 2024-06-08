@@ -66,7 +66,7 @@ containers:
       # Require authentication through Authelia for dashboard
       # Note: Disable this when testing/changing Authelia! Will get a 404 if
       # Authelia is not working correctly.
-      - traefik.http.routers.api.middlewares=authelia@docker
+      # - traefik.http.routers.api.middlewares=authelia@docker
       - "traefik.http.routers.api.rule=Host(`traefik.{{ domain_name }}`)"
       - traefik.http.routers.api.service=api@internal
       ## Flame
@@ -81,7 +81,7 @@ containers:
   # PostgreSQL
   # https://github.com/docker-library/docs/blob/master/postgres/README.md
   # Used for
-  # - Authelia
+  # - Authelia (Disabled)
   # - Nextcloud (WIP)
   # - Tandoor
   - service_name: postgres
@@ -130,8 +130,11 @@ containers:
     restart: unless-stopped
 
   # Redis - https://github.com/bitnami/containers/tree/main/bitnami/redis
+  # Accessed by other containers over the default Docker network
+  # Used for
+  # - Authelia (disabled)
   - service_name: redis
-    active: true
+    active: false
     image: bitnami/redis:latest
     environment:
       - "REDIS_PASSWORD={{ redis_password }}"
@@ -174,7 +177,7 @@ containers:
 
   # Authelia - https://www.authelia.com/integration/deployment/docker/
   - service_name: authelia
-    active: true
+    active: false
     image: authelia/authelia
     # https://www.authelia.com/configuration/methods/environment/
     # Commented vars are already set in the configuration file and should not
@@ -264,7 +267,7 @@ containers:
     labels:
       - traefik.enable=true
       - traefik.http.routers.flame.entrypoints=http,https
-      - traefik.http.routers.flame.middlewares=authelia@docker
+      # - traefik.http.routers.flame.middlewares=authelia@docker
       - "traefik.http.routers.flame.rule=Host(`dashboard.{{ domain_name }}`)"
       - traefik.http.services.flame.loadbalancer.server.port=5005
     # environment:
@@ -463,7 +466,7 @@ containers:
       # Traefik
       - traefik.enable=true
       - traefik.http.routers.transmission.entrypoints=http,https
-      - traefik.http.routers.transmission.middlewares=authelia@docker
+      # - traefik.http.routers.transmission.middlewares=authelia@docker
       - "traefik.http.routers.transmission.rule=\
         Host(`transmission.{{ domain_name }}`)"
       - traefik.http.services.transmission.loadbalancer.server.port=9091
@@ -493,7 +496,7 @@ containers:
       # Traefik
       - traefik.enable=true
       - traefik.http.routers.sonarr.entrypoints=http,https
-      - traefik.http.routers.sonarr.middlewares=authelia@docker
+      # - traefik.http.routers.sonarr.middlewares=authelia@docker
       - "traefik.http.routers.sonarr.rule=Host(`sonarr.{{ domain_name }}`)"
       - traefik.http.services.sonarr.loadbalancer.server.port=8989
       # Flame
@@ -514,7 +517,7 @@ containers:
       # Traefik
       - traefik.enable=true
       - traefik.http.routers.radarr.entrypoints=http,https
-      - treafik.http.routers.radarr.middlewares=authelia@docker
+      # - treafik.http.routers.radarr.middlewares=authelia@docker
       - "traefik.http.routers.radarr.rule=Host(`radarr.{{ domain_name }}`)"
       - traefik.http.services.radarr.loadbalancer.server.port=7878
       # Flame
@@ -535,7 +538,7 @@ containers:
       # Traefik
       - traefik.enable=true
       - traefik.http.routers.prowlarr.entrypoints=http,https
-      - traefik.http.routers.prowlarr.middlewares=authelia@docker
+      # - traefik.http.routers.prowlarr.middlewares=authelia@docker
       - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.{{ domain_name }}`)"
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
       # Flame

@@ -48,32 +48,23 @@ subnets:
     subnet_max_lease: "{{ max_lease }}"
 
 reservations:
-  - {mac: 8c:16:45:5c:fb:2d, ip: 10.0.2.12, name: emerald}
-  - {mac: 0c:54:15:b8:12:76, ip: 10.0.2.13, name: emerald-wifi}
-  - {mac: 30:9c:23:00:65:61, ip: 10.0.2.14, name: corbin-desktop}
-  - {mac: ac:f6:f7:b2:c9:ec, ip: 10.0.2.15, name: corbin-cell}
-  - {mac: 98:fa:9b:56:d4:00, ip: 10.0.2.16, name: PF1RRR47}
-
-  - {mac: 7a:a7:ab:36:e5:e4, ip: 10.0.2.20, name: kristen-cell}
-
-  - {mac: 84:2a:fd:ab:1e:80, ip: 10.0.2.40, name: hp-printer}
-
-  - {mac: ac:ae:19:b4:28:83, ip: 10.0.2.50, name: coroku}
-  - {mac: ac:ae:19:0d:be:f7, ip: 10.0.2.51, name: kristens-roku}
-
-  - {mac: 40:3f:8c:70:cf:11, ip: 10.0.4.2, name: office-switch}
-  - {mac: 40:3f:8c:f2:a8:79, ip: 10.0.4.3, name: office-lamp}
-  - {mac: 60:a4:b7:3f:19:47, ip: 10.0.4.4, name: cleo-lights}
-  - {mac: 40:3f:8c:70:cb:2c, ip: 10.0.4.5, name: bedroom-switch}
-  - {mac: 60:32:b1:97:36:80, ip: 10.0.4.6, name: bedroom-bulb-1}
-  - {mac: 3c:84:6a:c3:83:ac, ip: 10.0.4.7, name: bedroom-bulb-2}
-  - {mac: 40:3f:8c:f2:aa:17, ip: 10.0.4.8, name: bedroom-fan}
-  - {mac: 60:a4:b7:3f:36:cd, ip: 10.0.4.9, name: office-fan}
-  - {mac: 40:3f:8c:70:f6:f8, ip: 10.0.4.10, name: thirdroom-switch}
-
-  - {mac: 9c:8e:cd:36:dc:5e, ip: 10.0.4.32, name: office-cam}
-  - {mac: 9c:8e:cd:36:e2:3a, ip: 10.0.4.33, name: office-cam-wifi}
-  - {mac: 9c:8e:cd:36:dc:86, ip: 10.0.4.34, name: front-cam}
-  - {mac: 9c:8e:cd:36:e2:62, ip: 10.0.4.35, name: front-cam-wifi}
-  - {mac: 9c:8e:cd:36:eb:a4, ip: 10.0.4.36, name: cleo-cam}
-  - {mac: 9c:8e:cd:36:f1:80, ip: 10.0.4.37, name: cleo-cam-wifi}
+  - {mac: '8c:16:45:5c:fb:2d', ip: 10.0.2.12, name: emerald}
+  - {mac: '0c:54:15:b8:12:76', ip: 10.0.2.13, name: emerald-wifi}
+  - {mac: '30:9c:23:00:65:61', ip: 10.0.2.14, name: corbin-desktop}
+  - {mac: 'ac:f6:f7:b2:c9:ec', ip: 10.0.2.15, name: corbin-cell}
+  - {mac: 'ac:ae:19:b4:28:83', ip: 10.0.2.50, name: coroku}
+  - {mac: '40:3f:8c:70:cf:11', ip: 10.0.4.2, name: office-switch}
+  - {mac: '40:3f:8c:f2:a8:79', ip: 10.0.4.3, name: office-lamp}
+  - {mac: '60:a4:b7:3f:19:47', ip: 10.0.4.4, name: deck-lights}
+  - {mac: '40:3f:8c:70:cb:2c', ip: 10.0.4.5, name: bedroom-switch}
+  - {mac: '60:32:b1:97:36:80', ip: 10.0.4.6, name: bedroom-bulb-1}
+  - {mac: '3c:84:6a:c3:83:ac', ip: 10.0.4.7, name: bedroom-bulb-2}
+  - {mac: '60:a4:b7:3f:36:cd', ip: 10.0.4.9, name: bedroom-lamp}
+  - {mac: '40:3f:8c:f2:aa:17', ip: 10.0.4.8, name: livingroom-lamp}
+  - {mac: '40:3f:8c:70:f6:f8', ip: 10.0.4.10, name: unused-switch}
+  - {mac: '9c:8e:cd:36:dc:5e', ip: 10.0.4.32, name: livingroom-cam}
+  - {mac: '9c:8e:cd:36:e2:3a', ip: 10.0.4.33, name: livingroom-cam-wifi}
+  - {mac: '9c:8e:cd:36:dc:86', ip: 10.0.4.34, name: front-cam}
+  - {mac: '9c:8e:cd:36:e2:62', ip: 10.0.4.35, name: front-cam-wifi}
+  - {mac: '9c:8e:cd:36:eb:a4', ip: 10.0.4.36, name: unused-cam}
+  - {mac: '9c:8e:cd:36:f1:80', ip: 10.0.4.37, name: unused-wifi}

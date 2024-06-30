@@ -61,10 +61,11 @@ reservations:
   - {mac: '3c:84:6a:c3:83:ac', ip: 10.0.4.7, name: bedroom-bulb-2}
   - {mac: '60:a4:b7:3f:36:cd', ip: 10.0.4.9, name: bedroom-lamp}
   - {mac: '40:3f:8c:f2:aa:17', ip: 10.0.4.8, name: livingroom-lamp}
-  - {mac: '40:3f:8c:70:f6:f8', ip: 10.0.4.10, name: unused-switch}
+  - {mac: '40:3f:8c:70:f6:f8', ip: 10.0.4.10, name: kitchen-switch}
+  - {mac: '9c:a2:f4:1c:f9:f4', ip: 10.0.4.11, name: diningroom-dimmer}
   - {mac: '9c:8e:cd:36:dc:5e', ip: 10.0.4.32, name: livingroom-cam}
   - {mac: '9c:8e:cd:36:e2:3a', ip: 10.0.4.33, name: livingroom-cam-wifi}
-  - {mac: '9c:8e:cd:36:dc:86', ip: 10.0.4.34, name: front-cam}
-  - {mac: '9c:8e:cd:36:e2:62', ip: 10.0.4.35, name: front-cam-wifi}
-  - {mac: '9c:8e:cd:36:eb:a4', ip: 10.0.4.36, name: unused-cam}
-  - {mac: '9c:8e:cd:36:f1:80', ip: 10.0.4.37, name: unused-wifi}
+  - {mac: '9c:8e:cd:36:dc:86', ip: 10.0.4.34, name: office-cam}
+  - {mac: '9c:8e:cd:36:e2:62', ip: 10.0.4.35, name: office-cam-wifi}
+  - {mac: '9c:8e:cd:36:eb:a4', ip: 10.0.4.36, name: unused-cam-2}
+  - {mac: '9c:8e:cd:36:f1:80', ip: 10.0.4.37, name: unused-cam-2-wifi}
